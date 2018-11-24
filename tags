@@ -12,7 +12,10 @@ ARD_PORT_LCK_0	Makefile	/^    ARD_PORT_LCK_0    = $(shell [ -e $(HOME)\/.arduino
 ARD_PORT_LCK_1	Makefile	/^    ARD_PORT_LCK_1    = $(shell [ -e $(HOME)\/.arduino_port_lck_1 ] && cat $(HOME)\/.arduino_port_lck_1)$/;"	m
 BOARD_TAG	Makefile	/^BOARD_TAG = mega2560$/;"	m
 USER_LIB_PATH	Makefile	/^USER_LIB_PATH = $(ARDUINO_UA_DIR)\/libraries$/;"	m
-cc	serialReader.py	/^     cc=str(ser.readline())$/;"	v
+cc	serialReader.py	/^    cc = str(ser.readline())$/;"	v
+dPinCount	writter.cpp	/^const int dPinCount = sizeof(dPins)\/sizeof(dPins[0]);$/;"	v
+dPins	writter.cpp	/^int dPins[] = {]8,9,10};$/;"	v
+dpinStates	writter.cpp	/^int dpinStates[dPinCount];$/;"	v
 main	writter.cpp	/^int main() {$/;"	f
-ser	serialReader.py	/^ser = serial.Serial("COM11", 9600)$/;"	v
+ser	serialReader.py	/^ser = serial.Serial("\/dev\/ttyACM0", 19200)$/;"	v
 setup	writter.cpp	/^void setup() {$/;"	f

@@ -52,16 +52,16 @@ void update_dPins(){
 }
 
 void setup() {
-    init();
-    Serial.begin(19200);
-    init_dPins(); init_aPins();
+	init();
+	Serial.begin(19200);
+    init_dPins()
 }
 
 int main() {
-    setup();
-    while (true) {
+	setup();
+	while (true) {
         // update all digital pins
-        update_dPins(); update_aPins();
-    }
-    return 0;
+		update_dPins();
+	}
+	return 0;
 }
