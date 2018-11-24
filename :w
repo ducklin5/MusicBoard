@@ -15,7 +15,7 @@ int main() {
 	while (true) {
 		for (int i = 2; i < 14; i++) {
 			int pinValNow = digitalRead(i);
-			if (pinValNow != digitalPinStates[i]) {
+			if(pinValNow != digitalPinStates){
 				digitalPinStates[i] = pinValNow;
 				Serial.print(i);
 				Serial.print(":");

@@ -1,0 +1,18 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+ARDUINO_LIBS	Makefile	/^ARDUINO_LIBS = SD SPI Adafruit_GFX Adafruit_ILI9341 TouchScreen$/;"	m
+ARDUINO_UA_DIR	Makefile	/^ARDUINO_UA_DIR = $(HOME)\/arduino-ua$/;"	m
+ARD_PORT_0	Makefile	/^    ARD_PORT_0    = $(shell [ -e $(HOME)\/.arduino_port_0 ] && cat $(HOME)\/.arduino_port_0)$/;"	m
+ARD_PORT_1	Makefile	/^    ARD_PORT_1    = $(shell [ -e $(HOME)\/.arduino_port_1 ] && cat $(HOME)\/.arduino_port_1)$/;"	m
+ARD_PORT_LCK_0	Makefile	/^    ARD_PORT_LCK_0    = $(shell [ -e $(HOME)\/.arduino_port_lck_0 ] && cat $(HOME)\/.arduino_port_lck_0)$/;"	m
+ARD_PORT_LCK_1	Makefile	/^    ARD_PORT_LCK_1    = $(shell [ -e $(HOME)\/.arduino_port_lck_1 ] && cat $(HOME)\/.arduino_port_lck_1)$/;"	m
+BOARD_TAG	Makefile	/^BOARD_TAG = mega2560$/;"	m
+USER_LIB_PATH	Makefile	/^USER_LIB_PATH = $(ARDUINO_UA_DIR)\/libraries$/;"	m
+cc	serialReader.py	/^     cc=str(ser.readline())$/;"	v
+main	writter.cpp	/^int main() {$/;"	f
+ser	serialReader.py	/^ser = serial.Serial("COM11", 9600)$/;"	v
+setup	writter.cpp	/^void setup() {$/;"	f
