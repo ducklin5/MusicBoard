@@ -3,7 +3,7 @@ int dPins[] = {8,9,10};
 const int dPinCount = sizeof(dPins)/sizeof(dPins[0]);
 int dpinStates[dPinCount];
 
-int aPins[] = {8,9,10};
+int aPins[] = {10};
 const int aPinCount = sizeof(aPins)/sizeof(aPins[0]);
 int apinStates[aPinCount];
 
@@ -11,16 +11,23 @@ void init_aPins(){
     for (int i = 0; i < aPinCount; i++) {
         int pin = aPins[i];
         pinMode(pin, INPUT);
-        analogWrite(pin, 0);
     }
+}
+
+// stackoverflow.com/questions/29557459/
+int intRound(int num, int factor){
+    int result = num + factor/2;
+    result -= result % factor;
+    return result;
 }
 
 void update_aPins(){
     for (int i = 0; i < aPinCount; i++) {
         int pin = aPins[i];
-        int newVal = analogRead(pin);
+        int newVal = intRound(analogRead(pin), 25);
 
         if (newVal != apinStates[i]) {
+            Serial.print("A");
             Serial.print(pin);
             Serial.print(":");
             Serial.println(newVal);
@@ -54,14 +61,14 @@ void update_dPins(){
 void setup() {
     init();
     Serial.begin(19200);
-    init_dPins(); init_aPins();
+    init_aPins(); init_dPins(); 
 }
 
 int main() {
     setup();
     while (true) {
         // update all digital pins
-        update_dPins(); update_aPins();
+        update_aPins(); update_dPins(); 
     }
     return 0;
 }
