@@ -1,0 +1,6 @@
+compile_commands.json
+tags
+build-mega2560/*
+*.fail
+*.old
+*.swp
