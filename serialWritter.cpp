@@ -3,7 +3,7 @@ int dPins[] = {8,9,10};
 const int dPinCount = sizeof(dPins)/sizeof(dPins[0]);
 int dpinStates[dPinCount];
 
-int aPins[] = {10};
+int aPins[] = {8,9};
 const int aPinCount = sizeof(aPins)/sizeof(aPins[0]);
 int apinStates[aPinCount];
 
