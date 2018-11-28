@@ -8,6 +8,7 @@ inputs = {"8": 0, "9": 0}
 
 def run():
     global inputs
+    prevInputs = {}
     # import your script B
     pygame.init()
 
@@ -43,7 +44,7 @@ def run():
     yBoxBackground = 0
     gameDisplay.fill(gray)
     while not quit:
-        b1Pressed = inputs["8"]
+        b1Pressed = (inputs["8"], prevInputs["8"])
         # gameDisplay.blit(BoxBackground,xBoxBackground,yBoxBackground)
         if b1Pressed:
             gameDisplay.blit(Button1Pressed, (xButton1, yButton1))
@@ -58,6 +59,7 @@ def run():
         # gameDisplay.blit(,,)
         # gameDisplay.blit(,,)
         # gameDisplay.blit(,,)
+        prevInputs = inputs
         pygame.display.update()
         clock.tick(30)
 

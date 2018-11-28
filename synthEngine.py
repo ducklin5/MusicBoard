@@ -31,18 +31,24 @@ class Wave(Enum):
     SQUARE = 2
 
 
-def playArray(array):
+def playArray(array, repeat=False):
     scaledArray = 0.5 * array * 32768
     scaledArray = scaledArray.astype(np.int16)
     pySound = pygame.mixer.Sound(scaledArray)
-    pySound.play()
+    k = -1 if repeat else 0
+    pySound.play(k)
+    return pySound
 
 
 class synth:
-    def __init__(self):
-        self.sources = [oscillator(Wave.SINE), oscillator(Wave.SAW)]
+    def __init__(self, oscillators=2):
+
+        self.sources = []
+        for i in range(oscillators):
+            self.sources.append(oscillator())
         self.adsr = ADSREnvelope()
         self.adsr.enabled = False
+        self.sustains = {}
 
     def combine(self, freq, dur):
         tone = 0
@@ -63,30 +69,39 @@ class synth:
 
         plt.hold(False)
         plt.ylim(-1, 1)
-        plt.xlim(0,1/freq)
+        plt.xlim(0, 1/freq)
         plt.show()
 
-    def play(self, freq, dur):
-        tone = self.combine(freq, dur)
+    def play(self, freq):
+        tone = self.combine(freq, 0.2)
         if self.adsr.enabled:
             pass
         else:
-            playArray(tone)
+            sustainTone = playArray(tone, True)
+            self.sustains[str(freq)] = sustainTone
+
+    def release(self, freq):
+        # get release tone
+        # play release tone
+        # stop sustain tone:
+        self.sustains[str(freq)].stop()
 
 
 class oscillator:
     def __init__(self, form=Wave.SINE):
         self.form = form
+        self.scale = 1
 
     # TODO: Implement form
     def getToneData(self, freq, dur):
         t = np.linspace(0, dur, dur * sample_rate, False)
-        if self.form == Wave.SINE:
-            return np.sin(2 * np.pi * freq * t)
-        elif self.form == Wave.SAW:
-            return signal.sawtooth(2 * np.pi * freq * t, 0)
-        elif self.form == Wave.SQUARE:
-            return signal.square(2 * np.pi * freq * t)
+        theta = 2 * np.pi * freq * t
+        waveforms = {
+            Wave.SINE: np.sin(theta),
+            Wave.SAW: signal.sawtooth(theta, 0),
+            Wave.SQUARE: signal.square(theta)
+        }
+        return self.scale * waveforms.get(self.form)
 
     def play(self, freq, dur):
         tone = self.getToneData(freq, dur)
@@ -96,15 +111,6 @@ class oscillator:
         y = self.getToneData(freq, 1/freq)
         t = np.linspace(0, 1/freq, y.size)
         plt.plot(t, y)
-
-
-# A sample set
-class sound:
-    def __init__(self, data):
-        self.data = data
-
-    def play(self):
-        return(self)
 
 
 class ADSREnvelope:
@@ -124,11 +130,19 @@ class ADSREnvelope:
 
 if __name__ == "__main__":
     mySynth = synth()
+    mySynth.sources[0].form = Wave.SQUARE
+    mySynth.sources[0].scale = 0.25
     mySynth.draw(Note.A)
+
     for i in range(3):
+
         mySynth.sources[0].play(Note.A, 2)
         time.sleep(3)
         mySynth.sources[1].play(Note.A, 2)
         time.sleep(3)
-        mySynth.play(Note.A, 2)
+        print("Play Now!")
+        mySynth.play(Note.A)
+        time.sleep(3)
+        print("Release Now!")
+        mySynth.release(Note.A)
         time.sleep(3)
