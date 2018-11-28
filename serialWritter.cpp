@@ -47,7 +47,7 @@ void init_dPins(){
 void update_dPins(){
     for (int i = 0; i < dPinCount; i++) {
         int pin = dPins[i];
-        int newVal = digitalRead(pin);
+        int newVal = not digitalRead(pin);
 
         if (newVal != dpinStates[i]) {
             Serial.print(pin);

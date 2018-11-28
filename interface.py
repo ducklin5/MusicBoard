@@ -1,52 +1,31 @@
 import pygame
-import random
+import serialReader
 from threading import Thread
-import numpy as np
-import os
-import serial
 
-b1Pressed = False
-def serialReader(): 
-    global b1Pressed
-    ser = serial.Serial("/dev/ttyACM0", 19200)
-
-    pins = {}
-    while True:
-        line = str(ser.readline())[2:][:-5]
-        # print(line)
-        line = line.split(":")
-        pin = line[0]
-        value = line[1]
-        pins[pin] = int(value)
-        print(pins)
-        print('\n')
-        if pins.get("8") == 0:
-            b1Pressed = True
-        elif pins.get("8") == 1:
-            b1Pressed = False
+# inputs to be used
+inputs = {"8": 0, "9": 0}
 
 
-def interface():
-    global b1Pressed
+def run():
+    global inputs
     # import your script B
     pygame.init()
 
     myFont = pygame.font.SysFont("Times New Roman", 18)
 
-    display_width=1024
-    display_height=960
+    display_width = 1024
+    display_height = 960
 
     points = 0
 
-    black = (0,0,0)
-    white = (255,255,255)
-    red = (255,0,0)
-    green = (0,255,0)
-    blue = (0,0,255)
-    grey = (128,128,128)
+    black = (0, 0, 0)
+    white = (255, 255, 255)
+    red = (255, 0, 0)
+    green = (0, 255, 0)
+    blue = (0, 0, 255)
+    grey = (128, 128, 128)
 
-
-    gameDisplay = pygame.display.set_mode((display_width,display_height))
+    gameDisplay = pygame.display.set_mode((display_width, display_height))
 
     pygame.display.set_caption('Music Board')
     clock = pygame.time.Clock()
@@ -62,14 +41,15 @@ def interface():
     yButton1 = 250
     xBoxBackground = 0
     yBoxBackground = 0
-    gameDisplay.fill(grey)
-    while quit == False:
+    gameDisplay.fill(gray)
+    while not quit:
+        b1Pressed = inputs["8"]
         # gameDisplay.blit(BoxBackground,xBoxBackground,yBoxBackground)
-        if b1Pressed == True:
-            gameDisplay.blit(Button1Pressed,(xButton1,yButton1))
+        if b1Pressed:
+            gameDisplay.blit(Button1Pressed, (xButton1, yButton1))
         else:
-            gameDisplay.blit(Button1,(xButton1,yButton1))
-        gameDisplay.blit(Knob1,(xKnob1,yKnob1))
+            gameDisplay.blit(Button1, (xButton1, yButton1))
+        gameDisplay.blit(Knob1, (xKnob1, yKnob1))
         # gameDisplay.blit(,,)
         # gameDisplay.blit(,,)
         # gameDisplay.blit(,,)
@@ -85,8 +65,5 @@ def interface():
     quit()
 
 
-Thread(target = serialReader).start() 
-Thread(target = interface).start()
-
-# https://help.github.com/articles/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent/
-
+Thread(target=serialReader.run, args=("/dev/ttyACM0", inputs)).start()
+Thread(target=run).start()
