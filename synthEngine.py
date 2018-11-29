@@ -53,6 +53,8 @@ class synth:
         for i in range(oscillators):
             self.sources.append(oscillator())
         self.adsr = Envelope()
+        self.sustains = {}
+        self.useEnvelope = True
 
     def getToneData(self, freq, dur):
         tone = 0
@@ -79,17 +81,17 @@ class synth:
     def play(self, freq):
         # get tone data of the synth at this frequency for 5 waves
         tone = self.getToneData(freq, 10/freq)
-        if self.adsr.enabled:
-            pass
-        else:
-            sustainTone, pyChannel = playArray(tone, True)
-            self.sustains[str(freq)] = sustainTone
+        pySound, pyChannel = playArray(tone, True)
+        if self.useEnvelope:
+            self.adsr.start(pySound)
+        self.sustains[str(freq)] = pySound
+        return pySound
 
     def release(self, freq):
-        # get release tone
-        # play release tone
-        # stop sustain tone:
-        self.sustains[str(freq)].stop()
+        if self.useEnvelope:
+            self.adsr.release(self.sustains[str(freq)])
+        else:
+            self.sustains[str(freq)].stop()
 
 
 class oscillator:
@@ -110,7 +112,8 @@ class oscillator:
 
     def play(self, freq, dur):
         tone = self.getToneData(freq, dur)
-        playArray(tone)
+        pySound, pyChannel = playArray(tone)
+        return pySound
 
     def plot(self, freq):
         y = self.getToneData(freq, 1/freq)
@@ -128,44 +131,37 @@ class Envelope:
         self.enabled = False
         self.sustains = {}
 
-    def play(self, osc, freq):
-        ADTone = self.getAttackDelay(osc, freq)
-        pySound, pyChannel = playArray(ADTone)
-        Thread(target=self.playSustain, args=(osc, freq, pyChannel)).run()
+    def start(self, sound):
+        Thread(target=self.__start__, args=(sound,)).run()
 
-    def playSustain(self, osc, freq, channel=None):
-        STone = self.getSustain(osc, freq)
-        #SSound = Array2PySound(STone)
-        #channel.queue(SSound)
-        #while channel.get_busy():
-        #    pass
-        pySound, pyChannel = playArray(STone, True)
-        self.sustains[str(freq)] = pySound
+    def __start__(self, sound):
+        sound.set_volume(0)
+        start = time.time()
+        elapsed = 0
+        while elapsed < self.Adur:
+            time.sleep(1/sample_rate)
+            sound.set_volume(self.Dval * elapsed/self.Adur)
+            elapsed = time.time() - start
 
-    def release(self, osc, freq):
-        RTone = self.getRelease(osc, freq)
-        playArray(RTone)
-        self.sustains[str(freq)].stop()
+        start = time.time()
+        elapsed = 0
+        while elapsed < self.Ddur:
+            time.sleep(1/sample_rate)
+            sound.set_volume(
+                    self.Dval + (self.Sval-self.Dval)*elapsed/self.Ddur)
+            elapsed = time.time() - start
 
-    def getAttackDelay(self, osc, freq):
-        oscData = osc.getToneData(freq, self.Adur + self.Ddur)
-        AScaleArray = np.linspace(
-                0, self.Dval, self.Adur*sample_rate)
-        DScaleArray = np.linspace(
-                self.Dval, self.Sval, self.Ddur*sample_rate)[:-1]
-        ADScaleArray = np.concatenate((AScaleArray, DScaleArray))
+    def release(self, sound):
+        Thread(target=self.__release__, args=(sound,)).run()
 
-        return np.multiply(oscData, ADScaleArray)
-
-    def getSustain(self, osc, freq):
-        oscData = osc.getToneData(freq, 1)
-        return self.Sval * oscData
-
-    def getRelease(self, osc, freq):
-        oscData = osc.getToneData(freq, self.Rdur)
-        RScaleArray = np.linspace(
-                self.Sval, 0, self.Rdur*sample_rate)
-        return np.multiply(oscData, RScaleArray)
+    def __release__(self, sound):
+        start = time.time()
+        elapsed = 0
+        while elapsed < self.Rdur:
+            time.sleep(1/sample_rate)
+            sound.set_volume(self.Sval-self.Sval*elapsed/self.Adur)
+            elapsed = time.time() - start
+        sound.stop()
 
 
 if __name__ == "__main__":
@@ -176,10 +172,10 @@ if __name__ == "__main__":
 
     myEnv = Envelope()
     while True:
-        myEnv.play(mySynth, Note.B)
-        time.sleep(4)
-        myEnv.release(mySynth, Note.B)
-        time.sleep(2)
+        mySynth.play(Note.B)
+        time.sleep(3)
+        mySynth.release(Note.B)
+        time.sleep(3)
 
     for i in range(3):
 
