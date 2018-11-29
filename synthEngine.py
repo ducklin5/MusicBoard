@@ -47,10 +47,9 @@ class synth:
         for i in range(oscillators):
             self.sources.append(oscillator())
         self.adsr = ADSREnvelope()
-        self.adsr.enabled = False
         self.sustains = {}
 
-    def combine(self, freq, dur):
+    def getToneData(self, freq, dur):
         tone = 0
         for osc in self.sources:
             tone += osc.getToneData(freq, dur)
@@ -63,7 +62,7 @@ class synth:
         for source in self.sources:
             source.plot(freq)
 
-        y = self.combine(freq, 1/freq)
+        y = self.getToneData(freq, 1/freq)
         t = np.linspace(0, 1/freq, y.size)
         plt.plot(t, y)
 
@@ -73,7 +72,8 @@ class synth:
         plt.show()
 
     def play(self, freq):
-        tone = self.combine(freq, 0.2)
+        # get tone data of the synth at this frequency for 5 waves
+        tone = self.getToneData(freq, 10/freq)
         if self.adsr.enabled:
             pass
         else:
@@ -116,15 +116,42 @@ class oscillator:
 class ADSREnvelope:
     def __init__(self):
         self.Adur = 0.1
-        self.Astart = 0
-        self.Astop = 1
+        self.Dval = 1
         self.Ddur = 0.1
-        self.Dstop = 0.5
+        self.Sval = 0.1
         self.Rdur = 0.1
-        self.Rstop = 0.1
-        self.enabled = True
+        self.enabled = False
 
-    def getSounds(self, tone):
+    def getSounds(self, tone, freq):
+        repeats = 1
+        samplePerWave = round(sample_rate/freq)
+        samplesForRepeats = int(repeats*sample_rate/freq)
+
+        multiWave = tone[:samplesForRepeats]
+        singleWave = tone[:samplePerWave]
+
+        y_orig = multiWave
+        y_concatanated = singleWave
+        for i in range(repeats-1):
+            y_concatanated = np.concatenate((y_concatanated, singleWave))
+
+        plt.hold(True)
+        t = np.linspace(0, repeats/freq, y_orig.size)
+        tc = np.linspace(0, repeats/freq, y_concatanated.size)
+        plt.plot(t, y_orig, 'o')
+        plt.plot(tc, y_concatanated, '*')
+
+        plt.ylim(-1, 1)
+        plt.xlim(0, repeats/freq)
+        plt.show()
+
+    def getAttackDelay(self, tone, freq):
+        pass
+
+    def getSustain(self, tone, freq):
+        pass
+
+    def getRelease(self, tone, freq):
         pass
 
 
@@ -133,6 +160,10 @@ if __name__ == "__main__":
     mySynth.sources[0].form = Wave.SQUARE
     mySynth.sources[0].scale = 0.25
     mySynth.draw(Note.A)
+    q = mySynth.getToneData(Note.A, 16)
+
+    myAdsrE = ADSREnvelope()
+    myAdsrE.getSounds(q, Note.B)
 
     for i in range(3):
 
