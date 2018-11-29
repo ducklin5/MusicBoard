@@ -33,8 +33,8 @@ def interface():
 
     myFont = pygame.font.SysFont("Times New Roman", 18)
 
-    display_width=1024
-    display_height=960
+    display_width=947
+    display_height=609
 
     points = 0
 
@@ -58,11 +58,12 @@ def interface():
     quit = False
     xKnob1 = 500
     yKnob1 = 250
-    xButton1 = 350
-    yButton1 = 250
+    xButton1 = 1
+    yButton1 = 1
     xBoxBackground = 0
     yBoxBackground = 0
-    gameDisplay.fill(grey)
+    #gameDisplay.fill(grey)
+    gameDisplay.blit(BoxBackground,(xBoxBackground,yBoxBackground))
     while quit == False:
         # gameDisplay.blit(BoxBackground,xBoxBackground,yBoxBackground)
         if b1Pressed == True:
