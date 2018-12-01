@@ -87,22 +87,26 @@ class synth:
         plt.show()
 
     def play(self, freq):
+        if str(freq) not in self.sustains:
+            self.sustains[str(freq)] = None
 
-        # get tone data of the synth at this frequency for 5 waves
-        tone = self.getToneData(freq, 100/freq)
-        pySound, pyChannel = playArray(tone, True)
-        if self.useAdsr:
-            self.adsr.start(pySound)
-        self.sustains[str(freq)] = pySound
-        return pySound
+        if  self.sustains[str(freq)] == None:
+            # get tone data of the synth at this frequency for 5 waves
+            tone = self.getToneData(freq, 100/freq)
+            pySound, pyChannel = playArray(tone, True)
+            if self.useAdsr:
+                self.adsr.start(pySound)
+            self.sustains[str(freq)] = pySound
+            return pySound
+        else:
+            print("Frequency: " + str(freq) + " has not been released!")
 
     def release(self, freq):
-
-            if self.useAdsr:
-                self.adsr.release(self.sustains[str(freq)])
-            else:
-                self.sustains[str(freq)].stop()
-
+        if self.useAdsr:
+            self.adsr.release(self.sustains[str(freq)])
+        else:
+            self.sustains[str(freq)].stop()
+        self.sustains[str(freq)] = None
 
 class oscillator:
     def __init__(self, form=Wave.SINE):
@@ -188,7 +192,7 @@ if __name__ == "__main__":
 
     mySynth = synth(4)
     mySynth.sources[0].form = Wave.SAW
-    mySynth.sources[1].form = Wave.SQUARE
+    mySynth.sources[1].form = Wave.SINE
     mySynth.sources[2].form = Wave.SINE
     mySynth.sources[3].form = Wave.SINE
 
@@ -205,12 +209,14 @@ if __name__ == "__main__":
     mySynth2.sources[1].form = Wave.SINE
     mySynth2.sources[1].form = Wave.SQUARE
 
-    mySynth2.adsr.Adur = 0.0
+    mySynth2.vol = 1.5
+
+    mySynth2.adsr.Adur = 0.1
     mySynth2.adsr.Ddur = 0.0
-    mySynth2.adsr.Dval = 0.0
-    mySynth2.adsr.Sval = 0.0
-    mySynth2.adsr.Rdur = 0.0
-    mySynth2.useAdsr = False
+    mySynth2.adsr.Dval = 1.0
+    mySynth2.adsr.Sval = 1.0
+    mySynth2.adsr.Rdur = 0.2
+    mySynth2.useAdsr = True
 
     def myK(k):
         mySynth2.play(midi(k))
@@ -274,10 +280,6 @@ if __name__ == "__main__":
 
 
     while True:
-
-       # myK125(72)
-       # time.sleep(1)
-
         Dchord()
         myK(69)
         myK(74)
