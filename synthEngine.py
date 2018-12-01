@@ -9,9 +9,9 @@ import timeit
 
 sample_rate = 44100
 size = -16
-channels = 2
-buffersize = 4096
-
+channels = 1
+# https://stackoverflow.com/questions/18273722/pygame-sound-delay
+buffersize = 512
 pygame.mixer.pre_init(int(sample_rate/2), size, channels, buffersize)
 pygame.mixer.init()
 pygame.mixer.set_num_channels(100)
@@ -35,7 +35,11 @@ class Wave(Enum):
 
 
 def playArray(array, repeat=False):
-    pySound = Array2PySound(array)
+    scaledArray = 0.5 * array * 32768
+    scaledArray = scaledArray.astype(np.int16)
+    pySound = pygame.sndarray.make_sound(scaledArray)
+
+   # pySound = Array2PySound(array)
     k = -1 if repeat else 0
     pyChannel = pySound.play(k)
     return pySound, pyChannel
@@ -57,8 +61,7 @@ class synth:
         self.adsr = Envelope()
         self.sustains = {}
         self.useAdsr = True
-        self.toneCache = {}
-
+        self.vol = 1
 
 
     def getToneData(self, freq, dur):
@@ -66,10 +69,10 @@ class synth:
         for osc in self.sources:
             tone += osc.getToneData(freq, dur)
         tone /= np.amax(tone)
-        return tone
+        return self.vol * tone
 
     def draw(self, freq):
-        plt.hold(True)
+        # plt.hold(True)
 
         for source in self.sources:
             source.plot(freq)
@@ -78,12 +81,13 @@ class synth:
         t = np.linspace(0, 1/freq, y.size)
         plt.plot(t, y)
 
-        plt.hold(False)
+        # plt.hold(False)
         plt.ylim(-1, 1)
         plt.xlim(0, 1/freq)
         plt.show()
 
     def play(self, freq):
+
         # get tone data of the synth at this frequency for 5 waves
         tone = self.getToneData(freq, 100/freq)
         pySound, pyChannel = playArray(tone, True)
@@ -93,10 +97,11 @@ class synth:
         return pySound
 
     def release(self, freq):
-        if self.useAdsr:
-            self.adsr.release(self.sustains[str(freq)])
-        else:
-            self.sustains[str(freq)].stop()
+
+            if self.useAdsr:
+                self.adsr.release(self.sustains[str(freq)])
+            else:
+                self.sustains[str(freq)].stop()
 
 
 class oscillator:
@@ -109,11 +114,11 @@ class oscillator:
         t = np.linspace(0, dur, dur * sample_rate, False)
         theta = 2 * np.pi * freq * t
         waveforms = {
-            Wave.SINE: np.sin(theta),
-            Wave.SAW: signal.sawtooth(theta, 0),
-            Wave.SQUARE: signal.square(theta),
-            Wave.TRIANGLE: signal.sawtooth(theta, 0.5)
-        }
+                Wave.SINE: np.sin(theta),
+                Wave.SAW: signal.sawtooth(theta, 0),
+                Wave.SQUARE: signal.square(theta),
+                Wave.TRIANGLE: signal.sawtooth(theta, 0.5)
+                }
         return self.scale * waveforms.get(self.form)
 
     def play(self, freq, dur):
@@ -181,185 +186,141 @@ if __name__ == "__main__":
     # create a synth
     mysynths = []
 
-    mySynth = synth()
-
-    # with 3 oscillators
-    mySynth.sources[0].form = Wave.SQUARE
-    mySynth.sources[1].form = Wave.TRIANGLE
-    mySynth.sources.append(oscillator())
+    mySynth = synth(4)
+    mySynth.sources[0].form = Wave.SAW
+    mySynth.sources[1].form = Wave.SQUARE
     mySynth.sources[2].form = Wave.SINE
+    mySynth.sources[3].form = Wave.SINE
 
-    # set the oscillator volumes
-    mySynth.sources[0].scale = 0.5
-    mySynth.sources[1].scale = 0.5
-    mySynth.sources[2].scale = 0.5
+    mySynth.adsr.Adur = 0.1
+    mySynth.adsr.Ddur = 0.3
+    mySynth.adsr.Dval = 0.75
+    mySynth.adsr.Sval = 0.5
+    mySynth.adsr.Rdur = 2.0
+    mySynth.useAdsr = True
 
-    # draw this output pf the synth (and its oscillators)
-    # for freq = midi(69)
-    mySynth.draw(midi(69))
 
-    #
-    mySynth.adsr.Adur = 0.0
-    mySynth.adsr.Ddur = 0.0
-    mySynth.adsr.Dval = 0.0
-    mySynth.adsr.Sval = 0.0
-    mySynth.adsr.Rdur = 0.0
-    mySynth.useAdsr = False
+    mySynth2 = synth(3)
+    mySynth2.sources[0].form = Wave.SINE
+    mySynth2.sources[1].form = Wave.SINE
+    mySynth2.sources[1].form = Wave.SQUARE
 
-    def myK125(k):
-        timeit.timeit('mySynth.play(midi(k))', number=1)
+    mySynth2.adsr.Adur = 0.0
+    mySynth2.adsr.Ddur = 0.0
+    mySynth2.adsr.Dval = 0.0
+    mySynth2.adsr.Sval = 0.0
+    mySynth2.adsr.Rdur = 0.0
+    mySynth2.useAdsr = False
+
+    def myK(k):
+        mySynth2.play(midi(k))
         time.sleep(0.100)
-        mySynth.release(midi(k))
+        mySynth2.release(midi(k))
         time.sleep(0.25)
-
-    def myK250(k):
-        mySynth.play(midi(k))
-        time.sleep(0.100)
-        mySynth.release(midi(k))
-        time.sleep(0.150)
-
-    def myK500(k):
-        mySynth.play(midi(k))
-        time.sleep(0.100)
-        mySynth.release(midi(k))
-        time.sleep(0.400)
-
-    def myK375(k):
-        mySynth.play(midi(k))
-        time.sleep(0.100)
-        mySynth.release(midi(k))
-        time.sleep(0.275)
-
-    def myK625(k):
-        mySynth.play(midi(k))
-        time.sleep(0.100)
-        mySynth.release(midi(k))
-        time.sleep(0.525)
 
     def Achord():
         mySynth.play(midi(69))
         mySynth.play(midi(73))
         mySynth.play(midi(76))
-        
+
     def AchordRel():
         mySynth.release(midi(69))
         mySynth.release(midi(73))
         mySynth.release(midi(76))
-        
+
 
     def Bmchord():
         mySynth.play(midi(71))
         mySynth.play(midi(74))
         mySynth.play(midi(78))
-    
+
     def BmchordRel():
         mySynth.release(midi(71))
         mySynth.release(midi(74))
         mySynth.release(midi(78))
-        
+
 
     def Dchord():
         mySynth.play(midi(69))
         mySynth.play(midi(74))
         mySynth.play(midi(78))
-    
+
     def DchordRel():
         mySynth.release(midi(69))
         mySynth.release(midi(74))
         mySynth.release(midi(78))
-        
+
 
     def Fsmchord():
         mySynth.play(midi(69))
         mySynth.play(midi(73))
         mySynth.play(midi(78))
-    
+
     def FsmchordRel():
         mySynth.release(midi(69))
         mySynth.release(midi(73))
         mySynth.release(midi(78))
-        
+
 
     def Gchord():
         mySynth.play(midi(71))
         mySynth.play(midi(74))
         mySynth.play(midi(79))
-    
+
     def GchordRel():
         mySynth.release(midi(71))
         mySynth.release(midi(74))
         mySynth.release(midi(79))
-        
+
 
     while True:
-        
-        myK125(72)
-        myK125(72)
-        myK125(72)
-        myK125(72)
-        myK125(72)
-        myK125(72)
-        myK125(72)
-        myK125(72)
-        myK125(72)
-        myK125(72)
-        myK125(72)
-        myK125(72)
-        myK125(72)
-        myK125(72)
 
-        # myK125(70)
-        # Dchord()
-        # myK(69)
-        # myK(74)
-        # myK(78)
-        # myK(81)
-        # # myK(86)
-        # # myK(90)
-        # # myK(86)
-        # # myK(81)
-        # # myK(78)
-        # time.sleep(1)
-        # DchordRel()
-        # time.sleep(1)
-        # Achord()
-        # myK(69)
-        # myK(73)
-        # myK(76)
-        # myK(81)
-        # myK(85)
-        # myK(81)
-        # myK(76)
-        # myK(73)
-        # AchordRel()
-        # time.sleep(1)
-        # Bmchord()
-        # myK(71)
-        # myK(74)
-        # myK(78)
-        # myK(83)
-        # myK(86)
-        # myK(83)
-        # myK(78)
-        # myK(74)
-        # BmchordRel()
-        # time.sleep(1)
-        # Fsmchord()
-        # myK(66)
-        # myK(69)
-        # myK(73)
-        # myK(78)
-        # myK(81)
-        # myK(78)
-        # myK(73)
-        # myK(69)
-        # FsmchordRel()
-        # time.sleep(1)
-        # Gchord()
-        # GchordRel()
-        # Dchord()
-        # DchordRel()
-        # Gchord()
-        # GchordRel()
-        # Achord()
-        # AchordRel()
+       # myK125(72)
+       # time.sleep(1)
+
+        Dchord()
+        myK(69)
+        myK(74)
+        myK(78)
+        myK(81)
+        myK(86)
+        myK(90)
+        myK(86)
+        myK(81)
+        myK(78)
+        time.sleep(1)
+        DchordRel()
+        time.sleep(1)
+        Achord()
+        myK(69)
+        myK(73)
+        myK(76)
+        myK(81)
+        myK(85)
+        myK(81)
+        myK(76)
+        myK(73)
+        AchordRel()
+        time.sleep(1)
+        Bmchord()
+        myK(71)
+        myK(74)
+        myK(78)
+        myK(83)
+        myK(86)
+        myK(83)
+        myK(78)
+        myK(74)
+        BmchordRel()
+        time.sleep(1)
+        Fsmchord()
+        myK(66)
+        myK(69)
+        myK(73)
+        myK(78)
+        myK(81)
+        myK(78)
+        myK(73)
+        myK(69)
+        FsmchordRel()
+        time.sleep(1)
