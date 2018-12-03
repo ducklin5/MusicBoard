@@ -53,12 +53,15 @@ def Array2PySound(array):
     return pySound
 
 
-def noise(array):
-    out = []
-    random.seed()
-    for i in array:
-        out.append(2 * random.random() - 1)
-    return np.array(out)
+def noise(input):
+    if input is (int or float):
+        return 2 * random.random() - 1
+    elif input is (iter):
+        out = []
+        random.seed()
+        for i in input:
+            out.append(2 * random.random() - 1)
+        return np.array(out)
 
 
 class Synth:
@@ -66,14 +69,16 @@ class Synth:
 
         self.sources = []
         for i in range(oscillators):
-            self.sources.append(oscillator())
+            self.sources.append(Oscillator())
         self.adsr = Envelope()
         self.ffilter = Filter()
+        self.lfo = LFO()
         self.sustains = {}
         self.vol = 1
 
-    def getToneData(self, freq, dur):
+    def getToneData(self, freq):
         tone = 0
+        period = 1/freq
         for osc in self.sources:
             tone += osc.getToneData(freq, period*10)
         tone /= np.amax(abs(tone))
@@ -81,16 +86,15 @@ class Synth:
         return self.vol * tone
 
     def draw(self, freq):
-        # plt.hold(True)
+        y = self.getToneData(freq)
+        dur = y.size/sample_rate
+        t = np.linspace(0, y.size/sample_rate, y.size)
 
         for source in self.sources:
-            source.plot(freq)
+            source.plot(freq, dur)
 
-        y = self.getToneData(freq, 3/freq)
-        t = np.linspace(0, 3/freq, y.size)
         plt.plot(t, y)
 
-        # plt.hold(False)
         plt.ylim(-1, 1)
         plt.show()
 
@@ -105,27 +109,30 @@ class Synth:
             pySound, pyChannel = playArray(tone, True)
             sController = SoundController(pySound)
             self.adsr.start(sController, "adsr")
-            # self.lfo.start(sController)
+            self.lfo.start(sController, "lfo")
             self.sustains[str(freq)] = sController
             return sController
         else:
             print("Frequency: " + str(freq) + " has not been released!")
 
     def release(self, freq):
-        self.adsr.release(self.sustains[str(freq)], "adsr")
+        sController = self.sustains[str(freq)]
+        self.adsr.release(sController, "adsr") # the adsr will kill the controller when its done with delay
         self.sustains[str(freq)] = None
 
 
-class oscillator:
+class Oscillator:
     def __init__(self, form=Wave.SINE, scale=1, fine=0, shift=0):
         self.form = form
         self.scale = scale
-        self.fine = 0
         self.shift = 0
 
-    def getToneData(self, freq, dur):
-        t = np.linspace(0, dur, dur * sample_rate, False)
-        theta = 2 * np.pi * (freq + self.fine) * t + self.shift
+    def getToneData(self, freq, dur, singular=False):
+        if singular:
+            t = dur
+        else:
+            t = np.linspace(0, dur, dur * sample_rate, False)
+        theta = 2 * float(np.pi) * freq * t + self.shift
         waveforms = {
                 Wave.SINE: np.sin(theta),
                 Wave.SAW: signal.sawtooth(theta, 0),
@@ -140,37 +147,41 @@ class oscillator:
         pySound, pyChannel = playArray(tone)
         return pySound
 
-    def plot(self, freq):
-        y = self.getToneData(freq, 3/freq)
-        t = np.linspace(0, 3/freq, y.size)
+    def plot(self, freq, dur):
+        y = self.getToneData(freq, dur)
+        t = np.linspace(0, dur, y.size)
         plt.plot(t, y)
 
-class lfo:
+class LFO:
     def __init__(self, form=Wave.SINE, freq=10):
-        self.osc = oscillator()
+        self.osc = Oscillator()
         self.osc.form = form
         self.freq = freq
         self.enabled = True
+        self.active = []
+        self.time = time.time()
+        self.sync = False
+        self.mix = 1
 
-    def run(self, inputData, freq):
-        # assuming that inputData is a whole number of waves
-        inputPeriod = 1/freq
-        samplesPerWave = round(inputPeriod*sample_rate)
-        singleWave = inputData[:samplesPerWave]
-        lfoPeriod = 1/self.freq
-        outPeriod = lcm(inputPeriod, lfoPeriod)
-        repeats = outPeriod/inputPeriod
-
-        output = np.zeros(0)
-        for i in range(round(repeats)):
-            output = np.append(output, singleWave)
-
-        lfoData = self.osc.getToneData(self.freq, float(output.size)/sample_rate )
-
-        if self.mode == 'velocity':
-            output = np.multiply(lfoData, output)
-
-        return output
+    # def run(self, inputData, freq):
+    #     # assuming that inputData is a whole number of waves
+    #     inputPeriod = 1/freq
+    #     samplesPerWave = round(inputPeriod*sample_rate)
+    #     singleWave = inputData[:samplesPerWave]
+    #     lfoPeriod = 1/self.freq
+    #     outPeriod = lcm(inputPeriod, lfoPeriod)
+    #     repeats = outPeriod/inputPeriod
+    #
+    #     output = np.zeros(0)
+    #     for i in range(round(repeats)):
+    #         output = np.append(output, singleWave)
+    #
+    #     lfoData = self.osc.getToneData(self.freq, float(output.size)/sample_rate )
+    #
+    #     if self.mode == 'velocity':
+    #         output = np.multiply(lfoData, output)
+    #
+    #     return output
 
     def start(self, sController, id):
         if self.enabled:
@@ -179,33 +190,38 @@ class lfo:
             thread.start()
 
     def __start__(self, sController, id):
-        sController.set_volume(0, id)
-        start = time.time()
-        elapsed = 0
-        while elapsed < self.Adur:
-            time.sleep(1/sample_rate)
-            sController.set_volume(
-                self.ADval * elapsed/self.Adur, id
-            )
-            elapsed = time.time() - start
-    def release(self, sController, id):
         if self.enabled:
-            thread = Thread(target=self.__release__, args=(sController, id))
-            thread.daemon = True
-            thread.start()
+            self.active.append(sController)
+            if self.sync:
+                start = time.time()
+            else:
+                start = self.time
+            while sController in self.active and sController.alive:
+                # work at half the sample rate
+                time.sleep(1/sample_rate)
+                elapsed = time.time() - start
+                vol = self.osc.getToneData(self.freq, elapsed, singular=True)
+                vol = (vol + 1)/2
+                sController.set_volume(
+                   vol * (self.mix) + 1 *(1-self.mix), id
+                )
+            self.active.remove(sController)
+
 
 # sound Wrapper to enable multiple volume knobs on a sound file
 class SoundController:
     def __init__(self, sound):
         self.knobs = {}
         self.sound = sound
+        self.alive = True
 
     def set_volume(self, vol, knobkey):
         self.knobs[knobkey] = vol
         combined = 1
         for key, value in self.knobs.items():
             combined *= value
-        self.sound.set_volume(combined)
+
+        self.sound.set_volume(0.9*combined)
     
     def stop(self):
         self.sound.stop()
@@ -251,19 +267,20 @@ class Envelope:
         sController.set_volume(self.Sval, id)
 
     def release(self, sController, id):
-        if self.enabled:
-            thread = Thread(target=self.__release__, args=(sController, id))
-            thread.daemon = True
-            thread.start()
+        thread = Thread(target=self.__release__, args=(sController, id))
+        thread.daemon = True
+        thread.start()
 
     def __release__(self, sController, id):
-        start = time.time()
-        elapsed = 0
-        while elapsed < self.Rdur:
-            time.sleep(1/sample_rate)
-            sController.set_volume(self.Sval-self.Sval*elapsed/self.Rdur, id)
-            elapsed = time.time() - start
+        if self.enabled:
+            start = time.time()
+            elapsed = 0
+            while elapsed < self.Rdur:
+                time.sleep(1/sample_rate)
+                sController.set_volume(self.Sval-self.Sval*elapsed/self.Rdur, id)
+                elapsed = time.time() - start
         sController.stop()
+        sController.alive = False
 
 
 class Filter:
@@ -289,9 +306,14 @@ class Filter:
         plt.show()
 
     def run(self,  inputSignal):
-        b, a = self.__createButter__()
-        outputSignal = signal.filtfilt(b, a, inputSignal)
-        return self.mix * outputSignal + (1-self.mix) * inputSignal
+        if self.enabled:
+            b, a = self.__createButter__()
+            outputSignal = signal.filtfilt(b, a, inputSignal)
+            outputSignal = self.mix * outputSignal + (1-self.mix) * inputSignal
+            return outputSignal
+        else:
+            return inputSignal
+
 
     def __createButter__(self):
         # https://dsp.stackexchange.com/questions/49460/apply-low-pass-butterworth-filter-in-python
@@ -307,35 +329,39 @@ class Filter:
 
 if __name__ == "__main__":
 
-    mySynth = Synth(3)
-    mySynth.sources[0].form = Wave.SAW
-    mySynth.sources[1].form = Wave.SINE
-    mySynth.sources[2].form = Wave.NOISE
+    mySynth = Synth(2)
+    mySynth.sources[0].form = Wave.SINE
+    mySynth.sources[1].form = Wave.SQUARE
+    #mySynth.sources[2].form = Wave.SINE
 
     mySynth.sources[0].scale = 0.5
-    mySynth.sources[1].scale = 0.5
-    mySynth.sources[2].scale = 1
+    #mySynth.sources[1].scale = 0.5
+    #mySynth.sources[2].scale = 1
 
-    mySynth.sources[1].shift = np.pi/2
+    #mySynth.sources[1].shift = 4 * np.pi/3
 
     mySynth.ffilter.draw()
     mySynth.ffilter.mix = 0
     mySynth.draw(440)
-    mySynth.ffilter.mix = 0.8
+    mySynth.ffilter.mix = 0
     mySynth.draw(440)
 
-    mySynth.adsr.Adur = 1.7
-    mySynth.adsr.Ddur = 0.1
+    mySynth.adsr.Adur = 2
+    mySynth.adsr.Ddur = 0.4
     mySynth.adsr.ADval = 1
-    mySynth.adsr.Sval = 0.75
-    mySynth.adsr.Rdur = 2.0
-    mySynth.useAdsr = True
+    mySynth.adsr.Sval = 0.5
+    mySynth.adsr.Rdur = 2
+    mySynth.adsr.enabled = False
+
+    mySynth.lfo.freq = 0.75
+    mySynth.lfo.mix = 0.75
+    mySynth.lfo.osc.form = Wave.SAW
+    mySynth.lfo.enabled = True
 
     mySynth2 = Synth(4)
     mySynth2.sources[0].form = Wave.SINE
     mySynth2.sources[1].form = Wave.SINE
     mySynth2.sources[2].form = Wave.SQUARE
-    mySynth2.sources[3].form = Wave.NOISE
     mySynth2.sources[3].scale = 0.3
 
     mySynth2.vol = 0
@@ -345,7 +371,7 @@ if __name__ == "__main__":
     mySynth2.adsr.Dval = 1.0
     mySynth2.adsr.Sval = 1.0
     mySynth2.adsr.Rdur = 0.2
-    mySynth2.useAdsr = True
+    mySynth2.adsr.enabled = True
 
     def myK(k):
         mySynth2.play(midi(k))
@@ -355,13 +381,13 @@ if __name__ == "__main__":
 
     def Achord():
         mySynth.play(midi(69))
-        mySynth.play(midi(73))
-        mySynth.play(midi(76))
+        # mySynth.play(midi(73))
+        # mySynth.play(midi(76))
 
     def AchordRel():
         mySynth.release(midi(69))
-        mySynth.release(midi(73))
-        mySynth.release(midi(76))
+        # mySynth.release(midi(73))
+        # mySynth.release(midi(76))
 
     def Bmchord():
         mySynth.play(midi(71))
@@ -404,49 +430,50 @@ if __name__ == "__main__":
         mySynth.release(midi(79))
 
     while True:
-        Dchord()
-        myK(69)
-        myK(74)
-        myK(78)
-        myK(81)
-        myK(86)
-        myK(90)
-        myK(86)
-        myK(81)
-        myK(78)
-        time.sleep(1)
-        DchordRel()
-        time.sleep(1)
+        # Dchord()
+        # myK(69)
+        # myK(74)
+        # myK(78)
+        # myK(81)
+        # myK(86)
+        # myK(90)
+        # myK(86)
+        # myK(81)
+        # myK(78)
+        # time.sleep(1)
+        # DchordRel()
+        # time.sleep(1)
         Achord()
-        myK(69)
-        myK(73)
-        myK(76)
-        myK(81)
-        myK(85)
-        myK(81)
-        myK(76)
-        myK(73)
+        # myK(69)
+        # myK(73)
+        # myK(76)
+        # myK(81)
+        # myK(85)
+        # myK(81)
+        # myK(76)
+        # myK(73)
+        time.sleep(5)
         AchordRel()
         time.sleep(1)
-        Bmchord()
-        myK(71)
-        myK(74)
-        myK(78)
-        myK(83)
-        myK(86)
-        myK(83)
-        myK(78)
-        myK(74)
-        BmchordRel()
-        time.sleep(1)
-        Fsmchord()
-        myK(66)
-        myK(69)
-        myK(73)
-        myK(78)
-        myK(81)
-        myK(78)
-        myK(73)
-        myK(69)
-        FsmchordRel()
-        time.sleep(1)
+        # Bmchord()
+        # myK(71)
+        # myK(74)
+        # myK(78)
+        # myK(83)
+        # myK(86)
+        # myK(83)
+        # myK(78)
+        # myK(74)
+        # BmchordRel()
+        # time.sleep(1)
+        # Fsmchord()
+        # myK(66)
+        # myK(69)
+        # myK(73)
+        # myK(78)
+        # myK(81)
+        # myK(78)
+        # myK(73)
+        # myK(69)
+        # FsmchordRel()
+        # time.sleep(1)
