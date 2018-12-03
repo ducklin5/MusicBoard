@@ -61,7 +61,7 @@ def noise(array):
     return np.array(out)
 
 
-class synth:
+class Synth:
     def __init__(self, oscillators=2):
 
         self.sources = []
@@ -75,8 +75,8 @@ class synth:
     def getToneData(self, freq, dur):
         tone = 0
         for osc in self.sources:
-            tone += osc.getToneData(freq, dur)
-        tone /= np.amax(tone)
+            tone += osc.getToneData(freq, period*10)
+        tone /= np.amax(abs(tone))
         tone = self.ffilter.run(tone)
         return self.vol * tone
 
@@ -99,18 +99,20 @@ class synth:
             self.sustains[str(freq)] = None
 
         if self.sustains[str(freq)] is None:
-            # get tone data of the synth at this frequency for 5 waves
-            tone = self.getToneData(freq, 300/freq)
+            # get tone data of the Synth at this frequency for 5 waves
+            tone = self.getToneData(freq)
+
             pySound, pyChannel = playArray(tone, True)
-            self.adsr.start(pySound)
-            self.sustains[str(freq)] = pySound
-            return pySound
+            sController = SoundController(pySound)
+            self.adsr.start(sController, "adsr")
+            # self.lfo.start(sController)
+            self.sustains[str(freq)] = sController
+            return sController
         else:
             print("Frequency: " + str(freq) + " has not been released!")
 
     def release(self, freq):
-        self.adsr.release(self.sustains[str(freq)])
-        self.sustains[str(freq)].stop()
+        self.adsr.release(self.sustains[str(freq)], "adsr")
         self.sustains[str(freq)] = None
 
 
@@ -148,63 +150,124 @@ class lfo:
         self.osc = oscillator()
         self.osc.form = form
         self.freq = freq
-    def getData(self, dur):
-        o
+        self.enabled = True
 
-class Envelope:
-    def __init__(self):
-        self.Adur = 0.05
-        self.Dval = 0.5
-        self.Ddur = 0.2
-        self.Sval = 1
-        self.Rdur = 0.3
-        self.enabled = False
-        self.sustains = {}
+    def run(self, inputData, freq):
+        # assuming that inputData is a whole number of waves
+        inputPeriod = 1/freq
+        samplesPerWave = round(inputPeriod*sample_rate)
+        singleWave = inputData[:samplesPerWave]
+        lfoPeriod = 1/self.freq
+        outPeriod = lcm(inputPeriod, lfoPeriod)
+        repeats = outPeriod/inputPeriod
 
-    def start(self, sound):
+        output = np.zeros(0)
+        for i in range(round(repeats)):
+            output = np.append(output, singleWave)
+
+        lfoData = self.osc.getToneData(self.freq, float(output.size)/sample_rate )
+
+        if self.mode == 'velocity':
+            output = np.multiply(lfoData, output)
+
+        return output
+
+    def start(self, sController, id):
         if self.enabled:
-            # http://sebastiandahlgren.se/2014/06/27/running-a-method-as-a-background-thread-in-python/
-            thread = Thread(target=self.__start__, args=(sound,))
+            thread = Thread(target=self.__start__, args=(sController,id))
             thread.daemon = True
             thread.start()
 
-    def __start__(self, sound):
-        sound.set_volume(0)
+    def __start__(self, sController, id):
+        sController.set_volume(0, id)
         start = time.time()
-        elapsed = 2
+        elapsed = 0
         while elapsed < self.Adur:
             time.sleep(1/sample_rate)
-            sound.set_volume(self.Dval * elapsed/self.Adur)
+            sController.set_volume(
+                self.ADval * elapsed/self.Adur, id
+            )
+            elapsed = time.time() - start
+    def release(self, sController, id):
+        if self.enabled:
+            thread = Thread(target=self.__release__, args=(sController, id))
+            thread.daemon = True
+            thread.start()
+
+# sound Wrapper to enable multiple volume knobs on a sound file
+class SoundController:
+    def __init__(self, sound):
+        self.knobs = {}
+        self.sound = sound
+
+    def set_volume(self, vol, knobkey):
+        self.knobs[knobkey] = vol
+        combined = 1
+        for key, value in self.knobs.items():
+            combined *= value
+        self.sound.set_volume(combined)
+    
+    def stop(self):
+        self.sound.stop()
+
+
+class Envelope:
+    def __init__(self):
+        self.Adur = 0.1
+        self.ADval = 1
+        self.Ddur = 0.1
+        self.Sval = 0.5
+        self.Rdur = 0.3
+        self.enabled = True
+
+    def start(self, sController, id):
+        if self.enabled:
+            # http://sebastiandahlgren.se/2014/06/27/running-a-method-as-a-background-thread-in-python/
+            thread = Thread(target=self.__start__, args=(sController,id))
+            thread.daemon = True
+            thread.start()
+
+    def __start__(self, sController, id):
+        sController.set_volume(0, id)
+        start = time.time()
+        elapsed = 0
+        while elapsed < self.Adur:
+            time.sleep(1/sample_rate)
+            sController.set_volume(
+                self.ADval * elapsed/self.Adur, id
+            )
             elapsed = time.time() - start
 
         start = time.time()
         elapsed = 0
         while elapsed < self.Ddur:
             time.sleep(1/sample_rate)
-            sound.set_volume(
-                    self.Dval + (self.Sval-self.Dval)*elapsed/self.Ddur)
+            sController.set_volume(
+                    self.ADval + (self.Sval-self.ADval)*elapsed/self.Ddur, id
+            )
+
             elapsed = time.time() - start
 
-        sound.set_volume(self.Sval)
+        sController.set_volume(self.Sval, id)
 
-    def release(self, sound):
+    def release(self, sController, id):
         if self.enabled:
-            thread = Thread(target=self.__release__, args=(sound,))
+            thread = Thread(target=self.__release__, args=(sController, id))
             thread.daemon = True
             thread.start()
 
-    def __release__(self, sound):
+    def __release__(self, sController, id):
         start = time.time()
         elapsed = 0
         while elapsed < self.Rdur:
             time.sleep(1/sample_rate)
-            sound.set_volume(self.Sval-self.Sval*elapsed/self.Rdur)
+            sController.set_volume(self.Sval-self.Sval*elapsed/self.Rdur, id)
             elapsed = time.time() - start
-        sound.stop()
+        sController.stop()
 
 
 class Filter:
-    def __init__(self, mode='band', cuttoff=400, width=1000, repeats=4, mix=1):
+    def __init__(self, mode='low', cuttoff=200, width=1000, repeats=4, mix=1):
         self.mode = mode
         self.cuttoff = cuttoff
         self.width = width
@@ -244,7 +307,7 @@ class Filter:
 
 if __name__ == "__main__":
 
-    mySynth = synth(3)
+    mySynth = Synth(3)
     mySynth.sources[0].form = Wave.SAW
     mySynth.sources[1].form = Wave.SINE
     mySynth.sources[2].form = Wave.NOISE
@@ -258,17 +321,17 @@ if __name__ == "__main__":
     mySynth.ffilter.draw()
     mySynth.ffilter.mix = 0
     mySynth.draw(440)
-    mySynth.ffilter.mix = 1
+    mySynth.ffilter.mix = 0.8
     mySynth.draw(440)
 
-    mySynth.adsr.Adur = 0.1
-    mySynth.adsr.Ddur = 0.3
-    mySynth.adsr.Dval = 0.75
-    mySynth.adsr.Sval = 0.5
+    mySynth.adsr.Adur = 1.7
+    mySynth.adsr.Ddur = 0.1
+    mySynth.adsr.ADval = 1
+    mySynth.adsr.Sval = 0.75
     mySynth.adsr.Rdur = 2.0
     mySynth.useAdsr = True
 
-    mySynth2 = synth(4)
+    mySynth2 = Synth(4)
     mySynth2.sources[0].form = Wave.SINE
     mySynth2.sources[1].form = Wave.SINE
     mySynth2.sources[2].form = Wave.SQUARE
