@@ -57,7 +57,7 @@ def noise(array):
     out = []
     random.seed()
     for i in array:
-        out.append(random.random())
+        out.append(2 * random.random() - 1)
     return np.array(out)
 
 
@@ -100,7 +100,7 @@ class synth:
 
         if self.sustains[str(freq)] is None:
             # get tone data of the synth at this frequency for 5 waves
-            tone = self.getToneData(freq, 100/freq)
+            tone = self.getToneData(freq, 300/freq)
             pySound, pyChannel = playArray(tone, True)
             self.adsr.start(pySound)
             self.sustains[str(freq)] = pySound
@@ -143,6 +143,13 @@ class oscillator:
         t = np.linspace(0, 3/freq, y.size)
         plt.plot(t, y)
 
+class lfo:
+    def __init__(self, form=Wave.SINE, freq=10):
+        self.osc = oscillator()
+        self.osc.form = form
+        self.freq = freq
+    def getData(self, dur):
+        o
 
 class Envelope:
     def __init__(self):
@@ -197,50 +204,58 @@ class Envelope:
 
 
 class Filter:
-    def __init__(self, mode=0, cuttoff=10000, mix=1):
+    def __init__(self, mode='band', cuttoff=400, width=1000, repeats=4, mix=1):
         self.mode = mode
         self.cuttoff = cuttoff
+        self.width = width
         self.mix = mix
         self.enabled = True
+        self.repeats = repeats
 
-    def run(self, inputSignal):
-        modeMethods = [self.lowpass]
-        outputSignal = modeMethods[self.mode](inputSignal)
-        return outputSignal  # /np.amax(outputSignal)
+    def draw(self):
+        b, a = self.__createButter__()
+        angularFreq, response = signal.freqz(b, a)
+        realFreq = sample_rate * angularFreq/ (2*np.pi)
 
-    def lowpass(self,  inputSignal, repeats=0):
-        RC = 1/(2 * np.pi * self.cuttoff)
-        deltaT = 1/sample_rate
-        a = deltaT/(RC + deltaT)
+        plt.semilogx(realFreq, abs(response))
+        ticks = [20, 50, 100, 200, 500, 1000, 2000, 5000, 10000]
+        labels = ["20", "50", "100", "200", "500", "1k", "2k", "5k", "10k"]
+        plt.xticks(ticks, labels)
 
-        outputSignal = inputSignal * 0
-        for i in range(1,len(outputSignal)):
-            outputSignal[i] = a * inputSignal[i] + (a - 1) * outputSignal[i-1]
-        if repeats < 2:
-            repeats += 1
-            self.lowpass(inputSignal, repeats)
-        finalOut = self.mix*outputSignal + (1-self.mix)*inputSignal
-        return finalOut
+        plt.xlim([20, 20000])
+        plt.show()
 
+    def run(self,  inputSignal):
+        b, a = self.__createButter__()
+        outputSignal = signal.filtfilt(b, a, inputSignal)
+        return self.mix * outputSignal + (1-self.mix) * inputSignal
 
-   # def highpass(self, inputSignal,
+    def __createButter__(self):
+        # https://dsp.stackexchange.com/questions/49460/apply-low-pass-butterworth-filter-in-python
+        if self.mode == ('low' or 'high'):
+            normalizedCuttoff = self.cuttoff / (sample_rate / 2)  # Normalize the frequency
+            butter = signal.butter(1 + self.repeats, normalizedCuttoff, btype=self.mode)
+        elif self.mode == 'band':
+            low = self.cuttoff / (sample_rate / 2)
+            high = (self.cuttoff + self.width) / (sample_rate / 2)
+            butter = signal.butter(1 + self.repeats, [low, high], btype=self.mode)
 
+        return butter
 
 if __name__ == "__main__":
 
     mySynth = synth(3)
     mySynth.sources[0].form = Wave.SAW
     mySynth.sources[1].form = Wave.SINE
-    mySynth.sources[2].form = Wave.SINE
+    mySynth.sources[2].form = Wave.NOISE
 
     mySynth.sources[0].scale = 0.5
     mySynth.sources[1].scale = 0.5
     mySynth.sources[2].scale = 1
 
     mySynth.sources[1].shift = np.pi/2
-    mySynth.sources[0].fine = 100000
 
-    #mySynth.ffilter.draw()
+    mySynth.ffilter.draw()
     mySynth.ffilter.mix = 0
     mySynth.draw(440)
     mySynth.ffilter.mix = 1
