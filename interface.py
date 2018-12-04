@@ -26,20 +26,7 @@ class SynthUI():
         self.updatePlots()
         pass
 
-    def playKeys(self):
-        Piano = [0] * 12
-        Piano[0] = (inputs["2"])  # C
-        Piano[1] = (inputs["3"])  # C sharp
-        Piano[2] = (inputs["4"])  # D
-        Piano[3] = (inputs["5"])  # D sharp
-        Piano[4] = (inputs["6"])  # E
-        Piano[5] = (inputs["7"])  # F
-        Piano[6] = (inputs["8"])  # F sharp
-        Piano[7] = (inputs["9"])  # G
-        Piano[8] = (inputs["10"])  # G sharp
-        Piano[9] = (inputs["11"])  # A
-        Piano[10] = (inputs["12"])  # A sharp
-        Piano[11] = (inputs["13"])  # B
+    def playKeys(self, Piano):
 
         for i in range(len(Piano)):
             state = (Piano[i], self.lastPiano[i])
@@ -48,6 +35,13 @@ class SynthUI():
             elif state == (0, 1):
                 self.synth.release(se.midi(i + 72))
         self.lastPiano = Piano
+
+    def drawPiano(self, gameDisplay, Piano, pKey, pianoPosx, pianoPosy):      
+        i = 0
+        while i < len(Piano):
+            if Piano[i]==1:
+                gameDisplay.blit(pKey[i],(pianoPosx,pianoPosy))
+            i+=1
 
     def drawUI(self, gameDisplay):
         plotPosx = 100
@@ -98,6 +92,24 @@ def run():
     xBoxBackground = 1
     yBoxBackground = 1
 
+    thePiano = pygame.image.load('images/piano.png')
+    pianoPosx = 680
+    pianoPosy = 400
+    pKey = [0] * 12
+    pKey[0] = pygame.image.load('images/pianoC.png')
+    pKey[1] = pygame.image.load('images/pianoCS.png')
+    pKey[2] = pygame.image.load('images/pianoD.png')
+    pKey[3] = pygame.image.load('images/pianoDS.png')
+    pKey[4] = pygame.image.load('images/pianoE.png')
+    pKey[5] = pygame.image.load('images/pianoF.png')
+    pKey[6] = pygame.image.load('images/pianoFS.png')
+    pKey[7] = pygame.image.load('images/pianoG.png')
+    pKey[8] = pygame.image.load('images/pianoGS.png')
+    pKey[9] = pygame.image.load('images/pianoA.png')
+    pKey[10] = pygame.image.load('images/pianoAS.png')
+    pKey[11] = pygame.image.load('images/pianoB.png')    
+
+    
     # initialize synth fonts
     # i = 0
     # synthFonts=[]
@@ -109,12 +121,26 @@ def run():
     synth1UI = SynthUI()
 
     while not quit:
+        Piano = [0] * 12
+        Piano[0] = (inputs["2"])  # C
+        Piano[1] = (inputs["3"])  # C sharp
+        Piano[2] = (inputs["4"])  # D
+        Piano[3] = (inputs["5"])  # D sharp
+        Piano[4] = (inputs["6"])  # E
+        Piano[5] = (inputs["7"])  # F
+        Piano[6] = (inputs["8"])  # F sharp
+        Piano[7] = (inputs["9"])  # G
+        Piano[8] = (inputs["10"])  # G sharp
+        Piano[9] = (inputs["11"])  # A
+        Piano[10] = (inputs["12"])  # A sharp
+        Piano[11] = (inputs["13"])  # B
 
         LeftButton = (inputs["23"])
         RightButton = (inputs["22"])
 
         gameDisplay.blit(BoxBackground, (xBoxBackground, yBoxBackground))
-
+        gameDisplay.blit(thePiano,(pianoPosx,pianoPosy))
+        
         ####
         ###########
 
@@ -126,8 +152,8 @@ def run():
         # else:
         # gameDisplay.blit(Button1,(xButton1,yButton1))
         synth1UI.drawUI(gameDisplay)
-        synth1UI.playKeys()
-
+        synth1UI.playKeys(Piano)
+        synth1UI.drawPiano(gameDisplay, Piano, pKey, pianoPosx, pianoPosy)
         pygame.display.update()
         clock.tick(30)
 
