@@ -58,6 +58,7 @@ def run():
     se.synthInit(Synth1)
     Piano = [0] * 12 # Initializes piano keys
     while not quit:
+
         Piano[0] = (inputs["2"]) #C
         Piano[1] = (inputs["3"]) #C sharp
         Piano[2] = (inputs["4"]) #D
@@ -87,8 +88,9 @@ def run():
         # if PianoAS
         # else:
             #gameDisplay.blit(Button1,(xButton1,yButton1))
-        
-        # gameDisplay.blit(,,)
+
+        image = Synth1.draw(440,100,100)
+        gameDisplay.blit(image,(0,0))
         # gameDisplay.blit(,,)
         # gameDisplay.blit(,,)
         # gameDisplay.blit(,,)
@@ -109,17 +111,18 @@ class SynthUI():
 
     def set_wave(self):
         pass
-    def set_vol(selfs):
+
+    def set_vol(self):
         pass
 
     def drawWaves(self):
         self.synth.draw()
 
     def drawEnvelope(self):
-        self.synth.adsr.
+        self.synth.adsr.draw()
 
     def drawFilter(self):
-        self.pass
+        self
 
     def drawUI(self):
         pass

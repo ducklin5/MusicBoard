@@ -5,18 +5,11 @@ import pygame
 from enum import Enum
 from threading import Thread
 import random
+import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.backends.backend_agg as agg
 import pylab
-
-def plotDraw(fig, width, height, ):
-    canvas = agg.FigureCanvasAgg(fig)
-    canvas.draw()
-    renderer = canvas.get_renderer()
-    raw_data = renderer.tostring_rgb()
-
-
 
 sample_rate = 44100
 size = -16
@@ -27,6 +20,15 @@ pygame.mixer.pre_init(int(sample_rate/2), size, channels, buffersize)
 pygame.mixer.init()
 pygame.mixer.set_num_channels(100)
 
+
+def fig2Image(fig, width, height):
+    fig.set_size_inches(width, height)
+    fig.set_dpi(120)
+    canvas = agg.FigureCanvasAgg(fig)
+    canvas.draw()
+    renderer = canvas.get_renderer()
+    raw_data = renderer.tostring_rgb()
+    return pygame.image.fromstring(raw_data, size, "RGB")
 
 # https://en.wikipedia.org/wiki/MIDI_tuning_standard
 def midi(midiKey):
@@ -122,7 +124,7 @@ class Synth:
         tone = self.ffilter.run(tone)
         return self.vol * tone
 
-    def draw(self, freq):
+    def draw(self, freq, width, height):
         y = self.getToneData(freq)
         dur = y.size/sample_rate
         t = np.linspace(0, y.size/sample_rate, y.size)
@@ -133,7 +135,11 @@ class Synth:
         plt.plot(t, y)
 
         plt.ylim(-1, 1)
-        plt.show()
+
+        fig = plt.gcf()
+
+        return fig2Image(fig, width, height)
+
 
     def play(self, freq):
         if str(freq) not in self.sustains:
