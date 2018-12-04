@@ -5,6 +5,27 @@ from threading import Thread
 
 # inputs to be used
 inputs = {"2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0, "13": 0, "22": 0, "23": 0, "25": 0, "27": 0, "29": 0, "31": 0}
+class SynthUI():
+    def __init__(self):
+        self.synth = se.Synth()
+
+    def set_wave(self):
+        pass
+    def set_vol(selfs):
+        pass
+
+    def drawWaves(self):
+        self.synth.draw()
+
+    def drawEnvelope(self):
+        self.synth.adsr
+
+    def drawFilter(self):
+        pass
+
+    def drawUI(self):
+        pass
+
 
 def run():
     global inputs
@@ -52,10 +73,12 @@ def run():
     #     i+=1
     #myFont.render('Synth {}').format(i)
 
-    Synth1 = se.Synth(2)
-    Synth1.sources[0].form = se.Wave.SINE
-    Synth1.sources[1].form = se.Wave.SQUARE
-    se.synthInit(Synth1)
+    Synth1 = SynthUI
+    print(Synth1.synth)
+    #Synth1.synth.sources[0].form = se.Wave.SINE
+    #Synth1.synth.sources[1].form = se.Wave.SQUARE
+    #se.synthInit(Synth1)
+    
     Piano = [0] * 12 # Initializes piano keys
     while not quit:
         Piano[0] = (inputs["2"]) #C
@@ -73,6 +96,10 @@ def run():
 
         LeftButton = (inputs["23"])
         RightButton = (inputs["22"])
+
+        #gameDisplay.blit(synthFilter,(747,409))
+        #gameDisplay.blit(synthADSR,(747,209))
+        #gameDisplay.blit(synthWaveform,(747,9))
 
         gameDisplay.blit(BoxBackground,(xBoxBackground,yBoxBackground))
         i=0
@@ -102,27 +129,6 @@ def run():
 
     pygame.quit
     quit()
-
-class SynthUI():
-    def __init__(self):
-        self.synth = se.Synth()
-
-    def set_wave(self):
-        pass
-    def set_vol(selfs):
-        pass
-
-    def drawWaves(self):
-        self.synth.draw()
-
-    def drawEnvelope(self):
-        self.synth.adsr.
-
-    def drawFilter(self):
-        self.pass
-
-    def drawUI(self):
-        pass
 
 
 Thread(target=serialReader.run, args=("/dev/ttyACM0", inputs)).start()
