@@ -1,11 +1,22 @@
 import numpy as np
 from scipy import signal
-import matplotlib.pyplot as plt
 import time
 import pygame
 from enum import Enum
 from threading import Thread
 import random
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.backends.backend_agg as agg
+import pylab
+
+def plotDraw(fig, width, height, ):
+    canvas = agg.FigureCanvasAgg(fig)
+    canvas.draw()
+    renderer = canvas.get_renderer()
+    raw_data = renderer.tostring_rgb()
+
+
 
 sample_rate = 44100
 size = -16

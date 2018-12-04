@@ -1,6 +1,6 @@
 import pygame
 import serialReader
-import synthEngine
+import synthEngine as se
 from threading import Thread
 
 # inputs to be used
@@ -52,10 +52,10 @@ def run():
     #     i+=1
     #myFont.render('Synth {}').format(i)
 
-    Synth1 = synthEngine.Synth(2)
-    Synth1.sources[0].form = synthEngine.Wave.SINE
-    Synth1.sources[1].form = synthEngine.Wave.SQUARE
-    synthEngine.synthInit(Synth1)
+    Synth1 = se.Synth(2)
+    Synth1.sources[0].form = se.Wave.SINE
+    Synth1.sources[1].form = se.Wave.SQUARE
+    se.synthInit(Synth1)
     Piano = [0] * 12 # Initializes piano keys
     while not quit:
         Piano[0] = (inputs["2"]) #C
@@ -78,11 +78,11 @@ def run():
         i=0
         while i < len(Piano):
             if Piano[i]:
-                synthEngine.myK(Synth1,i+72)
+                se.myK(Synth1,i+72)
             i+=1
         # if PianoA:
         #     #gameDisplay.blit(Button1Pressed,(xButton1,yButton1))
-        #     synthEngine.myK(Synth1,69)
+        #     se.myK(Synth1,69)
 
         # if PianoAS
         # else:
@@ -102,6 +102,27 @@ def run():
 
     pygame.quit
     quit()
+
+class SynthUI():
+    def __init__(self):
+        self.synth = se.Synth()
+
+    def set_wave(self):
+        pass
+    def set_vol(selfs):
+        pass
+
+    def drawWaves(self):
+        self.synth.draw()
+
+    def drawEnvelope(self):
+        self.synth.adsr.
+
+    def drawFilter(self):
+        self.pass
+
+    def drawUI(self):
+        pass
 
 
 Thread(target=serialReader.run, args=("/dev/ttyACM0", inputs)).start()
