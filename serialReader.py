@@ -6,7 +6,6 @@ def run(serialPort, pins, debug=False):
 
     while True:
         line = str(ser.readline())[2:][:-5]
-        print(line)
         line = line.split(":")
         pin = line[0]
         value = line[1]
