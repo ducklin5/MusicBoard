@@ -77,13 +77,20 @@ def run():
     Synth1 = se.Synth(2)
     Synth1.sources[0].form = se.Wave.SINE
     Synth1.sources[1].form = se.Wave.SQUARE
+    # sImg = Synth1.draw(440)
     
 
     ###### HERE
     ui = SynthUI()
     print(ui.synth)
+    surf = ui.synth.draw(440, 400, 400)
     ####
+
+    ###########
     
+    gameDisplay.blit(surf, (0,0))
+    ###############
+
     Piano = [0] * 12 # Initializes piano keys
     while not quit:
 
@@ -103,7 +110,7 @@ def run():
         LeftButton = (inputs["23"])
         RightButton = (inputs["22"])
 
-        gameDisplay.blit(BoxBackground,(xBoxBackground,yBoxBackground))
+        # gameDisplay.blit(BoxBackground,(xBoxBackground,yBoxBackground))
         i=0
         while i < len(Piano):
             if Piano[i]:
@@ -118,7 +125,8 @@ def run():
             #gameDisplay.blit(Button1,(xButton1,yButton1))
 
         
-        # gameDisplay.blit(,,)
+        #gameDisplay.blit(sImg,(0,0))
+
         # gameDisplay.blit(,,)
         # gameDisplay.blit(,,)
         # gameDisplay.blit(,,)

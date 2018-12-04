@@ -5,11 +5,10 @@ import pygame
 from enum import Enum
 from threading import Thread
 import random
-import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.backends.backend_agg as agg
-import pylab
+import matplotlib.pyplot as plt
 
 sample_rate = 44100
 size = -16
@@ -21,14 +20,12 @@ pygame.mixer.init()
 pygame.mixer.set_num_channels(100)
 
 
-def fig2Image(fig, width, height):
-    fig.set_size_inches(width, height)
-    fig.set_dpi(120)
+def plt2Raw():
+    fig = plt.gcf()
     canvas = agg.FigureCanvasAgg(fig)
     canvas.draw()
     renderer = canvas.get_renderer()
-    raw_data = renderer.tostring_rgb()
-    return pygame.image.fromstring(raw_data, size, "RGB")
+    return renderer.tostring_rgb()
 
 # https://en.wikipedia.org/wiki/MIDI_tuning_standard
 def midi(midiKey):
@@ -124,21 +121,22 @@ class Synth:
         tone = self.ffilter.run(tone)
         return self.vol * tone
 
-    def draw(self, freq, width, height):
+    def draw(self, freq, width, height, dpi = 100):
+        
+        plt.figure(figsize=(width/dpi, height/dpi), dpi=dpi)
+        
         y = self.getToneData(freq)
         dur = y.size/sample_rate
         t = np.linspace(0, y.size/sample_rate, y.size)
 
         for source in self.sources:
             source.plot(freq, dur)
-
         plt.plot(t, y)
 
         plt.ylim(-1, 1)
 
-        fig = plt.gcf()
-
-        return fig2Image(fig, width, height)
+        image = pygame.image.fromstring(plt2Raw(), (width, height), "RGB")
+        return image
 
 
     def play(self, freq):
@@ -205,26 +203,6 @@ class LFO:
         self.time = time.time()
         self.sync = False
         self.mix = 1
-
-    # def run(self, inputData, freq):
-    #     # assuming that inputData is a whole number of waves
-    #     inputPeriod = 1/freq
-    #     samplesPerWave = round(inputPeriod*sample_rate)
-    #     singleWave = inputData[:samplesPerWave]
-    #     lfoPeriod = 1/self.freq
-    #     outPeriod = lcm(inputPeriod, lfoPeriod)
-    #     repeats = outPeriod/inputPeriod
-    #
-    #     output = np.zeros(0)
-    #     for i in range(round(repeats)):
-    #         output = np.append(output, singleWave)
-    #
-    #     lfoData = self.osc.getToneData(self.freq, float(output.size)/sample_rate )
-    #
-    #     if self.mode == 'velocity':
-    #         output = np.multiply(lfoData, output)
-    #
-    #     return output
 
     def start(self, sController, id):
         if self.enabled:
