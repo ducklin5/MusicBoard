@@ -27,6 +27,28 @@ class SynthUI():
         pass
 
 
+class SynthUI():
+    def __init__(self):
+        self.synth = se.Synth()
+
+    def set_wave(self):
+        pass
+
+    def set_vol(self):
+        pass
+
+    def drawWaves(self):
+        self.synth.draw()
+
+    def drawEnvelope(self):
+        self.synth.adsr.draw()
+
+    def drawFilter(self):
+        self
+
+    def drawUI(self):
+        pass
+
 def run():
     global inputs
     prevInputs = {}
@@ -73,11 +95,23 @@ def run():
     #     i+=1
     #myFont.render('Synth {}').format(i)
 
+<<<<<<< HEAD
     j = SynthUI
     print(j.synth)
     #Synth1.synth.sources[0].form = se.Wave.SINE
     #Synth1.synth.sources[1].form = se.Wave.SQUARE
     #se.synthInit(Synth1)
+=======
+    Synth1 = se.Synth(2)
+    Synth1.sources[0].form = se.Wave.SINE
+    Synth1.sources[1].form = se.Wave.SQUARE
+    
+
+    ###### HERE
+    ui = SynthUI()
+    print(ui.synth)
+    ####
+>>>>>>> d8743115f5653b11c89f6aa3e99f505180933741
     
     Piano = [0] * 12 # Initializes piano keys
     while not quit:
@@ -116,8 +150,7 @@ def run():
         # else:
             #gameDisplay.blit(Button1,(xButton1,yButton1))
 
-        image = Synth1.draw(440,100,100)
-        gameDisplay.blit(image,(0,0))
+        
         # gameDisplay.blit(,,)
         # gameDisplay.blit(,,)
         # gameDisplay.blit(,,)
