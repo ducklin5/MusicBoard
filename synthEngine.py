@@ -161,7 +161,9 @@ class Oscillator:
         return self.scale * waveforms.get(self.form)
 
     def play(self, freq, dur):
+        print('getting tone data')
         tone = self.getToneData(freq, dur)
+        print('got tone data')
         pySound, pyChannel = playArray(tone)
         return pySound
 

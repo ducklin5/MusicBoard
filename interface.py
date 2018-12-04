@@ -26,14 +26,14 @@ class SynthUI():
         self.updatePlots()
         pass
 
-    def playKeys(self, Piano):
+    def playKeys(self, Piano, octavenum):
 
         for i in range(len(Piano)):
             state = (Piano[i], self.lastPiano[i])
             if state == (1, 0):
-                self.synth.play(se.midi(i + 72))
+                self.synth.play(se.midi(i + octavenum))
             elif state == (0, 1):
-                self.synth.release(se.midi(i + 72))
+                self.synth.release(se.midi(i + octavenum))
         self.lastPiano = Piano
 
     def drawPiano(self, gameDisplay, Piano, pKey, pianoPosx, pianoPosy):      
@@ -87,8 +87,10 @@ def run():
 
     xKnob1 = 500
     yKnob1 = 250
-    xButton1 = 1
-    yButton1 = 1
+    xButton1 = 10
+    yButton1 = 500
+    xButton2 = 210
+    yButton2 = 500
     xBoxBackground = 1
     yBoxBackground = 1
 
@@ -109,7 +111,8 @@ def run():
     pKey[10] = pygame.image.load('images/pianoAS.png')
     pKey[11] = pygame.image.load('images/pianoB.png')    
 
-    
+    octaveTitle = pygame.image.load('images/octaveTitle.png')
+    octavenum = 72
     # initialize synth fonts
     # i = 0
     # synthFonts=[]
@@ -140,7 +143,20 @@ def run():
 
         gameDisplay.blit(BoxBackground, (xBoxBackground, yBoxBackground))
         gameDisplay.blit(thePiano,(pianoPosx,pianoPosy))
-        
+        gameDisplay.blit(octaveTitle,(10,390))
+        if LeftButton:
+            gameDisplay.blit(Button1Pressed, (xButton1,yButton1))
+            octavenum = octavenum - 12
+            pygame.time.delay(250) #prevents skipping octaves
+        else:
+            gameDisplay.blit(Button1, (xButton1,yButton1))
+
+        if RightButton:
+            gameDisplay.blit(Button1Pressed, (xButton2,yButton2))
+            octavenum = octavenum + 12
+            pygame.time.delay(250) #prevents skipping octaves
+        else:
+            gameDisplay.blit(Button1, (xButton2,yButton2))
         ####
         ###########
 
@@ -152,7 +168,7 @@ def run():
         # else:
         # gameDisplay.blit(Button1,(xButton1,yButton1))
         synth1UI.drawUI(gameDisplay)
-        synth1UI.playKeys(Piano)
+        synth1UI.playKeys(Piano, octavenum)
         synth1UI.drawPiano(gameDisplay, Piano, pKey, pianoPosx, pianoPosy)
         pygame.display.update()
         clock.tick(30)
