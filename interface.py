@@ -73,14 +73,15 @@ def run():
     #     i+=1
     #myFont.render('Synth {}').format(i)
 
-    Synth1 = SynthUI
-    print(Synth1.synth)
+    j = SynthUI
+    print(j.synth)
     #Synth1.synth.sources[0].form = se.Wave.SINE
     #Synth1.synth.sources[1].form = se.Wave.SQUARE
     #se.synthInit(Synth1)
     
     Piano = [0] * 12 # Initializes piano keys
     while not quit:
+
         Piano[0] = (inputs["2"]) #C
         Piano[1] = (inputs["3"]) #C sharp
         Piano[2] = (inputs["4"]) #D
@@ -114,8 +115,9 @@ def run():
         # if PianoAS
         # else:
             #gameDisplay.blit(Button1,(xButton1,yButton1))
-        
-        # gameDisplay.blit(,,)
+
+        image = Synth1.draw(440,100,100)
+        gameDisplay.blit(image,(0,0))
         # gameDisplay.blit(,,)
         # gameDisplay.blit(,,)
         # gameDisplay.blit(,,)
