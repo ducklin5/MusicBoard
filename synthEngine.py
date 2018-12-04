@@ -10,7 +10,7 @@ matplotlib.use("Agg")
 import matplotlib.backends.backend_agg as agg
 import matplotlib.pyplot as plt
 
-sample_rate = 44100
+sample_rate = 22050
 size = -16
 channels = 1
 # https://stackoverflow.com/questions/18273722/pygame-sound-delay
@@ -161,9 +161,7 @@ class Oscillator:
         return self.scale * waveforms.get(self.form)
 
     def play(self, freq, dur):
-        print('getting tone data')
         tone = self.getToneData(freq, dur)
-        print('got tone data')
         pySound, pyChannel = playArray(tone)
         return pySound
 
