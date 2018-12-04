@@ -177,7 +177,7 @@ class LFO:
         self.osc = Oscillator()
         self.osc.form = form
         self.freq = freq
-        self.enabled = True
+        self.enabled = False
         self.active = []
         self.time = time.time()
         self.sync = False
@@ -321,7 +321,7 @@ class Filter:
         self.cuttoff = cuttoff
         self.width = width
         self.mix = mix
-        self.enabled = True
+        self.enabled = False
         self.repeats = repeats
 
     def draw(self, width, height, dpi=100):
