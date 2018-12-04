@@ -1,5 +1,5 @@
 #include <Arduino.h>
-int dPins[] = {2,3,4,5,6,7,8,9,10,11,12,13,22,23,25,27,29,31};
+int dPins[] = {2,3,4,5,6,7,8,9,10,11,12,13,22,23,25};
 const int dPinCount = sizeof(dPins)/sizeof(dPins[0]);
 int dpinStates[dPinCount];
 
