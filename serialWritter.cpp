@@ -1,9 +1,9 @@
 #include <Arduino.h>
-int dPins[] = {8,9,10};
+int dPins[] = {2,3,4,5,6,7,8,9,10,11,12,13,22,23,25,27,29,31};
 const int dPinCount = sizeof(dPins)/sizeof(dPins[0]);
 int dpinStates[dPinCount];
 
-int aPins[] = {8,9};
+int aPins[] = {0,14,15};
 const int aPinCount = sizeof(aPins)/sizeof(aPins[0]);
 int apinStates[aPinCount];
 
