@@ -1,10 +1,10 @@
 import pygame
 import serialReader
+import synthEngine
 from threading import Thread
 
 # inputs to be used
 inputs = {"2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0, "13": 0, "22": 0, "23": 0, "25": 0, "27": 0, "29": 0, "31": 0}
-
 
 def run():
     global inputs
@@ -43,15 +43,50 @@ def run():
     yButton1 = 1
     xBoxBackground = 1
     yBoxBackground = 1
-    gameDisplay.fill(gray)
-    
+
+    #initialize synth fonts
+    # i = 0
+    # synthFonts=[]
+    # while i < 20:
+    #     synthFonts[i] = myFont.render('Synth {}'.format(i), 
+    #     i+=1
+    #myFont.render('Synth {}').format(i)
+
+    Synth1 = synthEngine.Synth(2)
+    Synth1.sources[0].form = synthEngine.Wave.SINE
+    Synth1.sources[1].form = synthEngine.Wave.SQUARE
+    synthEngine.synthInit(Synth1)
+    Piano = [0] * 12 # Initializes piano keys
     while not quit:
-        b1Pressed = (inputs["13"])
+        Piano[0] = (inputs["2"]) #C
+        Piano[1] = (inputs["3"]) #C sharp
+        Piano[2] = (inputs["4"]) #D
+        Piano[3] = (inputs["5"]) #D sharp
+        Piano[4] = (inputs["6"]) #E
+        Piano[5] = (inputs["7"]) #F
+        Piano[6] = (inputs["8"]) #F sharp
+        Piano[7] = (inputs["9"]) #G
+        Piano[8] = (inputs["10"]) #G sharp
+        Piano[9] = (inputs["11"]) #A
+        Piano[10] = (inputs["12"]) #A sharp
+        Piano[11] = (inputs["13"]) #B
+
+        LeftButton = (inputs["23"])
+        RightButton = (inputs["22"])
+
         gameDisplay.blit(BoxBackground,(xBoxBackground,yBoxBackground))
-        if b1Pressed:
-            gameDisplay.blit(Button1Pressed, (xButton1, yButton1))
-        else:
-            gameDisplay.blit(Button1, (xButton1, yButton1))
+        i=0
+        while i < len(Piano):
+            if Piano[i]:
+                synthEngine.myK(Synth1,i+72)
+            i+=1
+        # if PianoA:
+        #     #gameDisplay.blit(Button1Pressed,(xButton1,yButton1))
+        #     synthEngine.myK(Synth1,69)
+
+        # if PianoAS
+        # else:
+            #gameDisplay.blit(Button1,(xButton1,yButton1))
         
         # gameDisplay.blit(,,)
         # gameDisplay.blit(,,)

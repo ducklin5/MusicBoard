@@ -26,6 +26,32 @@ def midi(midiKey):
     return freq
 
 
+def myK(mySynth,k):
+        mySynth.play(midi(k))
+        time.sleep(0.100)
+        mySynth.release(midi(k))
+        time.sleep(0.25)
+
+def synthInit(mySynth):
+    #mySynth.ffilter.draw()
+    mySynth.ffilter.mix = 0
+    #mySynth.draw(440)
+    mySynth.ffilter.mix = 0
+    #mySynth.draw(440)
+
+    mySynth.adsr.Adur = 2
+    mySynth.adsr.Ddur = 0.4
+    mySynth.adsr.ADval = 1
+    mySynth.adsr.Sval = 0.5
+    mySynth.adsr.Rdur = 2
+    mySynth.adsr.enabled = False
+
+    mySynth.lfo.freq = 0.75
+    mySynth.lfo.mix = 0.75
+    mySynth.lfo.osc.form = Wave.SAW
+    mySynth.lfo.enabled = False
+
+
 # https://docs.python.org/3/library/enum.html
 class Wave(Enum):
     SAW = 0
@@ -340,11 +366,11 @@ if __name__ == "__main__":
 
     #mySynth.sources[1].shift = 4 * np.pi/3
 
-    mySynth.ffilter.draw()
+    #mySynth.ffilter.draw()
     mySynth.ffilter.mix = 0
-    mySynth.draw(440)
+    #mySynth.draw(440)
     mySynth.ffilter.mix = 0
-    mySynth.draw(440)
+    #mySynth.draw(440)
 
     mySynth.adsr.Adur = 2
     mySynth.adsr.Ddur = 0.4
@@ -356,124 +382,15 @@ if __name__ == "__main__":
     mySynth.lfo.freq = 0.75
     mySynth.lfo.mix = 0.75
     mySynth.lfo.osc.form = Wave.SAW
-    mySynth.lfo.enabled = True
-
-    mySynth2 = Synth(4)
-    mySynth2.sources[0].form = Wave.SINE
-    mySynth2.sources[1].form = Wave.SINE
-    mySynth2.sources[2].form = Wave.SQUARE
-    mySynth2.sources[3].scale = 0.3
-
-    mySynth2.vol = 0
-
-    mySynth2.adsr.Adur = 0.1
-    mySynth2.adsr.Ddur = 0.0
-    mySynth2.adsr.Dval = 1.0
-    mySynth2.adsr.Sval = 1.0
-    mySynth2.adsr.Rdur = 0.2
-    mySynth2.adsr.enabled = True
-
-    def myK(k):
-        mySynth2.play(midi(k))
-        time.sleep(0.100)
-        mySynth2.release(midi(k))
-        time.sleep(0.25)
-
-    def Achord():
-        mySynth.play(midi(69))
-        # mySynth.play(midi(73))
-        # mySynth.play(midi(76))
-
-    def AchordRel():
-        mySynth.release(midi(69))
-        # mySynth.release(midi(73))
-        # mySynth.release(midi(76))
-
-    def Bmchord():
-        mySynth.play(midi(71))
-        mySynth.play(midi(74))
-        mySynth.play(midi(78))
-
-    def BmchordRel():
-        mySynth.release(midi(71))
-        mySynth.release(midi(74))
-        mySynth.release(midi(78))
-
-    def Dchord():
-        mySynth.play(midi(69))
-        mySynth.play(midi(74))
-        mySynth.play(midi(78))
-
-    def DchordRel():
-        mySynth.release(midi(69))
-        mySynth.release(midi(74))
-        mySynth.release(midi(78))
-
-    def Fsmchord():
-        mySynth.play(midi(69))
-        mySynth.play(midi(73))
-        mySynth.play(midi(78))
-
-    def FsmchordRel():
-        mySynth.release(midi(69))
-        mySynth.release(midi(73))
-        mySynth.release(midi(78))
-
-    def Gchord():
-        mySynth.play(midi(71))
-        mySynth.play(midi(74))
-        mySynth.play(midi(79))
-
-    def GchordRel():
-        mySynth.release(midi(71))
-        mySynth.release(midi(74))
-        mySynth.release(midi(79))
+    mySynth.lfo.enabled = False
+    
 
     while True:
-        # Dchord()
-        # myK(69)
-        # myK(74)
-        # myK(78)
-        # myK(81)
-        # myK(86)
-        # myK(90)
-        # myK(86)
-        # myK(81)
-        # myK(78)
-        # time.sleep(1)
-        # DchordRel()
-        # time.sleep(1)
-        Achord()
-        # myK(69)
-        # myK(73)
-        # myK(76)
-        # myK(81)
-        # myK(85)
-        # myK(81)
-        # myK(76)
-        # myK(73)
-        time.sleep(5)
-        AchordRel()
-        time.sleep(1)
-        # Bmchord()
-        # myK(71)
-        # myK(74)
-        # myK(78)
-        # myK(83)
-        # myK(86)
-        # myK(83)
-        # myK(78)
-        # myK(74)
-        # BmchordRel()
-        # time.sleep(1)
-        # Fsmchord()
-        # myK(66)
-        # myK(69)
-        # myK(73)
-        # myK(78)
-        # myK(81)
-        # myK(78)
-        # myK(73)
-        # myK(69)
-        # FsmchordRel()
-        # time.sleep(1)
+        myK(mySynth,69)
+        # myK(mySynth,73)
+        # myK(mySynth,69)
+        # myK(mySynth,73)
+        # myK(mySynth,69)
+        # myK(mySynth,73)
+        # myK(mySynth,69)
+        # myK(mySynth,73)
