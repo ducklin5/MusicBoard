@@ -5,8 +5,7 @@ from threading import Thread
 
 # inputs to be used
 inputs = {"2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0, "10": 0,
-          "11": 0, "12": 0, "13": 0, "22": 0, "23": 0, "25": 0, "27": 0, "29": 0, "31": 0,
-          "A0": 0, "A14": 0, "A15": 0}
+          "11": 0, "12": 0, "13": 0, "22": 0, "23": 0, "25": 0, "27": 0, "29": 0, "31": 0}
 
 
 class SynthUI():
@@ -27,43 +26,36 @@ class SynthUI():
         self.updatePlots()
         pass
 
-    def setVol(self,Volume):
-        self.synth.vol = Volume
-
-    def playKeys(self, Piano, octavenum):
+    def playKeys(self, Piano):
 
         for i in range(len(Piano)):
             state = (Piano[i], self.lastPiano[i])
             if state == (1, 0):
-                self.synth.play(se.midi(i + octavenum))
+                self.synth.play(se.midi(i + 72))
             elif state == (0, 1):
-                self.synth.release(se.midi(i + octavenum))
+                self.synth.release(se.midi(i + 72))
         self.lastPiano = Piano
 
-    def drawPiano(self, gameDisplay, Piano, pKey, xThePiano, yThePiano):      
+    def drawPiano(self, gameDisplay, Piano, pKey, pianoPosx, pianoPosy):      
         i = 0
         while i < len(Piano):
             if Piano[i]==1:
-                gameDisplay.blit(pKey[i],(xThePiano,yThePiano))
+                gameDisplay.blit(pKey[i],(pianoPosx,pianoPosy))
             i+=1
 
     def drawUI(self, gameDisplay):
-        plotPosx = 560
-        plotPosy = 7
+        plotPosx = 100
+        plotPosy = 100
         gameDisplay.blit(self.synthPlot, (0 + plotPosx, 0 + plotPosy))
-        gameDisplay.blit(self.lfoPlot,  (0 + plotPosx, 190 + plotPosy))
-        gameDisplay.blit(self.filterPlot, (190 + plotPosx, 0 + plotPosy))
-        gameDisplay.blit(self.adsrPlot, (190 + plotPosx, 190 + plotPosy))
+        gameDisplay.blit(self.lfoPlot,  (210 + plotPosx, 0 + plotPosy))
+        gameDisplay.blit(self.filterPlot, (420 + plotPosx, 0 + plotPosy))
+        gameDisplay.blit(self.adsrPlot, (630 + plotPosx, 0 + plotPosy))
 
     def updatePlots(self):
-        self.synthPlot = self.synth.draw(440, 180, 180, 50)
-        self.filterPlot = self.synth.ffilter.draw(180, 180, 50)
-        self.lfoPlot = self.synth.lfo.draw(180, 180, 50)
-        self.adsrPlot = self.synth.adsr.draw(180, 180, 50)
-
-    def updateADSR(self):
-
-        self.adsrPlot = self.synth.adsr.draw(180, 180, 50)
+        self.synthPlot = self.synth.draw(440, 200, 200, 50)
+        self.filterPlot = self.synth.ffilter.draw(200, 200, 50)
+        self.lfoPlot = self.synth.lfo.draw(200, 200, 50)
+        self.adsrPlot = self.synth.adsr.draw(200, 200, 50)
 
 def run():
     global inputs
@@ -88,27 +80,21 @@ def run():
     clock = pygame.time.Clock()
     # print(pygame.image.get_extended())
     BoxBackground = pygame.image.load('images/BoxBackground.png')
-    Button1 = pygame.image.load('images/Button1Small.png')
-    Button1Pressed = pygame.image.load('images/Button1PressedSmall.png')
+    Button1 = pygame.image.load('images/Button1.png')
+    Button1Pressed = pygame.image.load('images/Button1Pressed.png')
     Knob1 = pygame.image.load('images/Knob1.png')
-    SynthList = pygame.image.load('images/SynthList.png')
     quit = False
 
-    #Defining GUI positions in window
     xKnob1 = 500
     yKnob1 = 250
-    xButton1 = 600
-    yButton1 = 420
-    xButton2 = 600
-    yButton2 = 500
-    xSynthList = 1
-    ySynthList = 1   
-    xThePiano = 680
-    yThePiano = 400
-    xScrollBar = 220
-    yScrollBar = 1
+    xButton1 = 1
+    yButton1 = 1
+    xBoxBackground = 1
+    yBoxBackground = 1
 
-    #Loading GUI images
+    thePiano = pygame.image.load('images/piano.png')
+    pianoPosx = 680
+    pianoPosy = 400
     pKey = [0] * 12
     pKey[0] = pygame.image.load('images/pianoC.png')
     pKey[1] = pygame.image.load('images/pianoCS.png')
@@ -122,15 +108,17 @@ def run():
     pKey[9] = pygame.image.load('images/pianoA.png')
     pKey[10] = pygame.image.load('images/pianoAS.png')
     pKey[11] = pygame.image.load('images/pianoB.png')    
-    thePiano = pygame.image.load('images/piano.png')
-    octaveTitle = pygame.image.load('images/octaveTitle.png')
-    ScrollBar = pygame.image.load('images/ScrollBar.png')
 
+    
+    # initialize synth fonts
+    # i = 0
+    # synthFonts=[]
+    # while i < 20:
+    #     synthFonts[i] = myFont.render('Synth {}'.format(i),
+    #     i+=1
+    #myFont.render('Synth {}').format(i)
 
-    octavenum = 72
-
-    synthUIs = [SynthUI()]
-    currentSynth = 0
+    synth1UI = SynthUI()
 
     while not quit:
         Piano = [0] * 12
@@ -147,33 +135,25 @@ def run():
         Piano[10] = (inputs["12"])  # A sharp
         Piano[11] = (inputs["13"])  # B
 
-        Volume = (inputs["A0"])
-        synthUIs[currentSynth].setVol(Volume/1000)
         LeftButton = (inputs["23"])
         RightButton = (inputs["22"])
-        JoystickButton = (inputs["25"])
-        gameDisplay.blit(BoxBackground, (1, 1))
-        gameDisplay.blit(thePiano,(xThePiano,yThePiano))
-        gameDisplay.blit(SynthList,(xSynthList,ySynthList))
-        gameDisplay.blit(ScrollBar,(xScrollBar,yScrollBar))
-        #gameDisplay.blit(octaveTitle,(410,390))
-        if LeftButton:
-            gameDisplay.blit(Button1Pressed, (xButton1,yButton1))
-            octavenum = octavenum - 12
-            pygame.time.delay(250) #prevents skipping octaves
-        else:
-            gameDisplay.blit(Button1, (xButton1,yButton1))
 
-        if RightButton:
-            gameDisplay.blit(Button1Pressed, (xButton2,yButton2))
-            octavenum = octavenum + 12
-            pygame.time.delay(250) #prevents skipping octaves
-        else:
-            gameDisplay.blit(Button1, (xButton2,yButton2))
-        synthUIs[currentSynth].drawUI(gameDisplay)
-        synthUIs[currentSynth].playKeys(Piano, octavenum)
-        synthUIs[currentSynth].drawPiano(gameDisplay, Piano, pKey, xThePiano, yThePiano)
-        # synthUIs[currentSynth].doSomeChange()
+        gameDisplay.blit(BoxBackground, (xBoxBackground, yBoxBackground))
+        gameDisplay.blit(thePiano,(pianoPosx,pianoPosy))
+        
+        ####
+        ###########
+
+        # if PianoA:
+        #     #gameDisplay.blit(Button1Pressed,(xButton1,yButton1))
+        #     se.myK(Synth1,69)
+
+        # if PianoAS
+        # else:
+        # gameDisplay.blit(Button1,(xButton1,yButton1))
+        synth1UI.drawUI(gameDisplay)
+        synth1UI.playKeys(Piano)
+        synth1UI.drawPiano(gameDisplay, Piano, pKey, pianoPosx, pianoPosy)
         pygame.display.update()
         clock.tick(30)
 
