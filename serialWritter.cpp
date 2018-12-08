@@ -24,7 +24,7 @@ int intRound(int num, int factor){
 void update_aPins(){
     for (int i = 0; i < aPinCount; i++) {
         int pin = aPins[i];
-        int newVal = intRound(analogRead(pin), 50);
+        int newVal = intRound(analogRead(pin), 500);
 
         if (newVal != apinStates[i]) {
             Serial.print("A");
