@@ -13,7 +13,8 @@ Included Files:
     * serialWritter.cpp
 
 Interface.py program contains 7 functions and 1 class:
-    > Functions
+   
+    >>>> Functions
     * selectMode
     * selectGraphMode
     * editSourceMode
@@ -21,18 +22,34 @@ Interface.py program contains 7 functions and 1 class:
     * editLFOMode
     * editADSRMode
     * run
-    > Classes
+
+    >>>> Classes
     * SynthUI
-synthEngine.py module contains 6 functions and 5 classes:
-    > Functions
+
+synthEngine.py module contains 5 functions and 6 classes:
+    
+    >>>> Functions
     * plt2Img
     * midi
     * Array2PySound
     * playArray
     * noise
 
+    >>>>> Classes
+    * SoundController
+    * Oscillator
+    * Synth
+    * Filter
+    * Envelope
+    * LFO
+
+serialReader.py and serialWritter.cpp are helper files to get input from the Arduino
+
 -- Program Usgae --
-usage: python3 synthEngine.py
-where mode can be 1 of "keep-symbols", "keep-digits", "keep-stops"
+For the first time usage you must configure your Arduino in the configuration shown in the image file. Then run `` make && make upload `` with the arduino plugged in.
+Once its completed, the prgram can now be run. The frontend program for our project is the interface.py program.
+usage: run ``python3 synthEngine.py`` in the terminal.
+A GUI will appear showing all the Synths than can be edited. The joy stick on the arduino is used for navoagation to move bewteen modes and synths.
+
 
 -- Notes --
