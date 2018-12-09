@@ -117,7 +117,7 @@ def playArray(array, repeat=False):
 def noise(timePoint):
     """
     Generates a single random floats (0 to 1) or an array of random floats
-    depending in the input
+    depending on the input
     Inputs:
         timePoint: time points to generate noise #  values dont actually matter
     Returns:
@@ -211,7 +211,7 @@ class Oscillator:
         play: play a given frequency for some duration
     """
 
-    def __init__(self, form=Wave.SINE, scale=1, shift=0):
+    def __init__(self, form=Wave.NOISE, scale=1, shift=0):
         """
         Create a Oscillator with all its properties
         Inputs:
@@ -241,7 +241,7 @@ class Oscillator:
         else:
             # create an array of time points to calculate amplitudes for
             t = np.linspace(0, dur, dur * sample_rate, False)
-        # convert the time point/s to an angle/s
+        # convert the time point/s to radians
         theta = 2 * float(np.pi) * freq * t + self.shift
         # compute coresponding wave form
         waveforms = {
@@ -365,7 +365,7 @@ class Synth:
             source.plot(freq, dur)
         plt.plot(t, y)
 
-        plt.ylim(-1, 1)
+        plt.ylim(-1.2, 1.2)
         plt.xlim(0, dur)
         plt.title("Premixer Sound Wave")
 
@@ -748,10 +748,10 @@ class LFO:
         # initialize the matplotlib figure for the final image
         plt.figure(figsize=(width / dpi, height / dpi), dpi=dpi)
 
-        # plot the osc
-        dur = 1 / self.freq
+        # plot the osc (2 periods)
+        dur = 2 / self.freq
         self.osc.plot(self.freq, dur)
-        plt.ylim(-1, 1)
+        plt.ylim(-1.2, 1.2)
         plt.xlim(0, dur)
         plt.title("LFO")
 
