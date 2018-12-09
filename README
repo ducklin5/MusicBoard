@@ -1,0 +1,38 @@
+Name: Azeez  Abass
+ID: 1542780
+Name: Matthew Braun
+ID: 
+CMPUT 274 EA1, Fall  2018
+
+Project: ZMat 2000
+
+Included Files:
+    * interface.py
+    * synthEngine.py
+    * serialReader.py
+    * serialWritter.cpp
+
+Interface.py program contains 7 functions and 1 class:
+    > Functions
+    * selectMode
+    * selectGraphMode
+    * editSourceMode
+    * editFilterMode
+    * editLFOMode
+    * editADSRMode
+    * run
+    > Classes
+    * SynthUI
+synthEngine.py module contains 6 functions and 5 classes:
+    > Functions
+    * plt2Img
+    * midi
+    * Array2PySound
+    * playArray
+    * noise
+
+-- Program Usgae --
+usage: python3 synthEngine.py
+where mode can be 1 of "keep-symbols", "keep-digits", "keep-stops"
+
+-- Notes --

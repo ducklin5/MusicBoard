@@ -1,3 +1,12 @@
+# ---------------------------------------------------
+#    Name: Azeez  Abass
+#    ID: 1542780
+#    Name: Matthew Braun
+#    ID: 
+#    CMPUT 274 EA1, Fall  2018
+#    Project: ZMat 2000 (SynthEngine)
+# ---------------------------------------------------
+
 ###########
 # Imports
 ###########
@@ -189,18 +198,52 @@ class SoundController:
 # THE MAGIC STARTS HERE
 ####################
 class Oscillator:
+    """
+    The Oscillator class is for defining a new signal generator. An Oscillator
+    can be of 5 forms: SAW, SINE, SQUARE, TRIANGLE and NOISE
+    Properties:
+        form (int): the form of oscillator (0,1,2,3,4) or using the Wave Enum
+        scale (float): Amplitude of the waveform
+        shift (float): Phase shift of the waveform in radians
+    Methods:
+        getToneData: get array data at a given frequency
+        plot: plot the waveform at a given frequency
+        play: play a given frequency for some duration
+    """
 
-    def __init__(self, form=Wave.SINE, scale=1, fine=0, shift=0):
+    def __init__(self, form=Wave.SINE, scale=1, shift=0):
+        """
+        Create a Oscillator with all its properties
+        Inputs:
+            form, scale and shift : same as properties
+        Returns:
+            An Oscillator Object
+        """
         self.form = form
         self.scale = scale
         self.shift = 0
 
     def getToneData(self, freq, dur, singular=False):
+        """
+        Get the signal data of this oscillator at frequency "freq" for "dur"
+        amout of time. If singular is true, the amplitude at a single time
+        "dur" is returned instead
+        Inputs:
+            freq (float): frequency of data to generate
+            dur (float): duration of the outpu waveform
+            singular (bool): return data for a single point
+        Returns:
+            output: A list of amplitudes or a single amplitude of the
+            oscillator's wave
+        """
         if singular:
             t = dur
         else:
+            # create an array of time points to calculate amplitudes for
             t = np.linspace(0, dur, dur * sample_rate, False)
+        # convert the time point/s to an angle/s
         theta = 2 * float(np.pi) * freq * t + self.shift
+        # compute coresponding wave form
         waveforms = {
             Wave.SINE: np.sin(theta),
             Wave.SAW: signal.sawtooth(theta, 0),
@@ -208,14 +251,33 @@ class Oscillator:
             Wave.TRIANGLE: signal.sawtooth(theta, 0.5),
             Wave.NOISE: noise(theta)
         }
-        return self.scale * waveforms.get(self.form)
+
+        output = self.scale * waveforms.get(self.form)
+        return output
 
     def play(self, freq, dur):
+        """
+        play the Signal Data of this oscillator at frequency "freq" for "dur"
+        amout of time.
+        Inputs:
+            freq (float): frequency of data to generate
+            dur (float): duration of the outpu waveform
+        Returns:
+            pySound: pygame.mixer.Sound object that was created
+        """
         tone = self.getToneData(freq, dur)
         pySound, pyChannel = playArray(tone)
         return pySound
 
     def plot(self, freq, dur):
+        """
+        Plot the tone data at frequency "freq" for duration "dur" to current
+        figure/plot
+        Inputs:
+            freq (float): frequency (Hz) of the data to be plotted
+            dur (float): duration of data to be plotted
+        """
+
         y = self.getToneData(freq, dur)
         t = np.linspace(0, dur, y.size)
         plt.plot(t, y)
@@ -363,52 +425,126 @@ class Synth:
         self.sustains[str(freq)] = None
 
 
-class LFO:
+class Filter:
+    """
+    A class for running low pass, high pass and band pass filters on np.arrays
+    Properties:
+        mode (string): The Filter type: can be "low", "high" or "band"
+        cuttoff (float): cuttoff frequency in Hz
+        width (float): Width of band, used only in band pass
+        mix (float): mix ratio, how much of the filtered sound is returned
+        1 means no input signal and 0 means no output signal
+        repeats (int): Number of times the filter is run
+        order of butterworth = 1 + repeats
+        enable (bool): Whether the Filter is enabled or not
+    Methods:
+        draw: plot the graph of the filter
+        run: runs the filter on a given array
+        __createButter__: Returns the coeffiencts/parameters
+        of the butterworth filter
+    """
 
-    def __init__(self, form=Wave.SINE, freq=0.8):
-        self.osc = Oscillator()
-        self.osc.form = form
-        self.freq = freq
+    def __init__(self, mode='low', cuttoff=10000, width=10, repeats=4, mix=1):
+        """
+        Create a Filter object with the given parameters.
+        Inputs:
+            mode: The mode/filter type
+            cuttoff: The Cuttoff (Hz)
+            width: The band width
+            repeats: number of times the array is refiltered
+            mix: mix ratio
+        Returns:
+            A Filter Object
+        """
+        self.mode = mode
+        self.cuttoff = cuttoff
+        self.width = width
+        self.mix = mix
         self.enabled = False
-        self.active = []
-        self.time = time.time()
-        self.sync = False
-        self.mix = 0.2
+        self.repeats = repeats
 
     def draw(self, width, height, dpi=100):
+        """
+        Plot the frequency/scale graph of the filter
+        Inputs:
+            width (int): width of the output image
+            height (int): height of the output image
+            dpi (int): resolution of the output data
+        Returns:
+            image (pygame.Surface): pygame image of the plot
+        """
         plt.figure(figsize=(width / dpi, height / dpi), dpi=dpi)
 
-        dur = 1 / self.freq
-        self.osc.plot(self.freq, dur)
-        plt.ylim(-1, 1)
-        plt.xlim(0, dur)
-        plt.title("LFO")
+        # get the filter coefficients
+        b, a = self.__createButter__()
+        # get the frequency response of the filter
+        angularFreq, response = signal.freqz(b, a)
+        # convert from angular frequency to Hz
+        realFreq = sample_rate * angularFreq / (2 * np.pi)
 
-        return plt2Img(width, height)
+        # plot the data
+        plt.semilogx(realFreq, abs(response))
+        ticks = [20, 50, 100, 200, 500, 1000, 2000, 5000, 10000]
+        labels = ["20", "50", "100", "200", "500", "1k", "2k", "5k", "10k"]
+        plt.xticks(ticks, labels)
+        plt.xlim([20, 20000])
+        plt.title("Filter/Equalizer")
 
-    def start(self, sController, id):
+        image = plt2Img(width, height)
+        return image
+
+    def run(self,  inputSignal):
+        """
+        Filters the inputSignal array
+        Inputs:
+            inputSignal (array): input signal array to be filtered
+        Returns:
+            outputSignal (array): filtered output signal
+        """
+        # Filter only runs if it is enable
         if self.enabled:
-            thread = Thread(target=self.__start__, args=(sController, id))
-            thread.daemon = True
-            thread.start()
+            # length of input signal
+            origLen = len(inputSignal)
+            # get filter coefficients
+            b, a = self.__createButter__()
+            # in order to avoid bad filtering on edge cases
+            # the input signal is padded with itself
+            paddedSignal = np.concatenate(
+                (inputSignal, inputSignal, inputSignal), axis=None)
+            # run the filter on the padded signal (sound array)
+            outputSignal = signal.filtfilt(b, a, paddedSignal)
+            # remove the padding after it has been filtered
+            outputSignal = outputSignal[origLen:2 * origLen]
+            # mix the input and output signal using the self.mix ratio
+            outputSignal = (
+                self.mix * outputSignal + (1 - self.mix) * inputSignal)
+            return outputSignal
+        else:  # otherwise input signal is passed through
+            return inputSignal
 
-    def __start__(self, sController, id):
-        if self.enabled:
-            self.active.append(sController)
-            if self.sync:
-                start = time.time()
-            else:
-                start = self.time
-            while sController in self.active and sController.alive:
-                # work at half the sample rate
-                time.sleep(1 / sample_rate)
-                elapsed = time.time() - start
-                vol = self.osc.getToneData(self.freq, elapsed, singular=True)
-                vol = (vol + 1) / 2
-                sController.set_volume(
-                    vol * (self.mix) + 1 * (1 - self.mix), id
-                )
-            self.active.remove(sController)
+    def __createButter__(self):
+        """
+        Calculates the coeffiecients of a butterworth filter with the object's
+        properties
+        Returns:
+            butter (tuple): Numerator and Denominator Coefficients
+        References:
+            https://dsp.stackexchange.com/questions/49460/apply-low-pass-butterworth-filter-in-python
+            https://stackoverflow.com/questions/12093594/how-to-implement-band-pass-butterworth-filter-with-scipy-signal-butter
+        """
+        # calculate coefficients for low pass or high pass
+        if self.mode == ('low' or 'high'):
+            # Normalize the frequency
+            normalizedCuttoff = self.cuttoff / (sample_rate / 2)
+            butter = signal.butter(
+                1 + self.repeats, normalizedCuttoff, btype=self.mode)
+        # calculate coefficients for band pass
+        elif self.mode == 'band':
+            low = self.cuttoff / (sample_rate / 2)
+            high = (self.cuttoff + self.width) / (sample_rate / 2)
+            butter = signal.butter(
+                1 + self.repeats, [low, high], btype=self.mode)
+        return butter
 
 
 class Envelope:
@@ -423,7 +559,7 @@ class Envelope:
         Rdur (float): Release duration
         enable (bool): Whether the Envelope is enabled or not
     Methods:
-        draw: plot the waveform of a note(frequency)
+        draw: plot the graph of the Envelope
         start: runs the __start__ method as a thread
         __start__: Controls a given sound or SoundController for
                     Attack Decay and Sustain
@@ -440,7 +576,7 @@ class Envelope:
         self.Adur = 0.1
         self.ADval = 1
         self.Ddur = 0.1
-        self.Sval = 0.5
+        self.Sval = 0.8
         self.Rdur = 0.3
         self.enabled = True
 
@@ -480,10 +616,11 @@ class Envelope:
         Inputs:
             sController (SoundController): Controller to be enveloped
             key (string): The key/name of the knob to be controlled
+        Refrences:
+            http://sebastiandahlgren.se/2014/06/27/running-a-method-as-a-background-thread-in-python/
         """
         # start the thread only if the Envelope is enabled
         if self.enabled:
-            # http://sebastiandahlgren.se/2014/06/27/running-a-method-as-a-background-thread-in-python/
             thread = Thread(target=self.__start__, args=(sController, key))
             thread.daemon = True
             thread.start()
@@ -522,105 +659,157 @@ class Envelope:
         # change the volume  to the Sustain Volume (Sval)
         sController.set_volume(self.Sval, key)
 
-    def release(self, sController, id):
+    def release(self, sController, key):
         """
-        Controls the volume knob 'id' of a sController object for the duration
-        of Release.
+        Controls the volume knob 'key' of a sController object for the duration
+        of Release. Then it stops the sController and kills it.
         This function calls the __release__ function as a thread
         Inputs:
             sController (SoundController): Controller to be enveloped
-            id (string): The key/name of the knob to be controlled
+            key (string): The key/name of the knob to be controlled
         """
-        thread = Thread(target=self.__release__, args=(sController, id))
-        thread.daemon = True
-        thread.start()
-
-    def __release__(self, sController, id):
         if self.enabled:
-            start = time.time()
-            elapsed = 0
-            while elapsed < self.Rdur:
-                time.sleep(1 / sample_rate)
-                sController.set_volume(
-                    self.Sval - self.Sval * elapsed / self.Rdur, id)
-                elapsed = time.time() - start
+            thread = Thread(target=self.__release__, args=(sController, key))
+            thread.daemon = True
+            thread.start()
+
+    def __release__(self, sController, key):
+        """
+        See Envelope.Release
+        """
+        # Change the volume during release time
+        start = time.time()
+        elapsed = 0
+        while elapsed < self.Rdur:
+            # set the volume at the sampling rate
+            time.sleep(1 / sample_rate)
+            elapsed = time.time() - start
+            # calculate the volume at the current time (linearly) and set it
+            currentVol = self.Sval - self.Sval * elapsed / self.Rdur
+            sController.set_volume(currentVol, key)
+
+        # Stop the sController Sound
         sController.stop()
+        # kill the SController
         sController.alive = False
 
 
-class Filter:
+class LFO:
+    """
+    A volume controlling Low Frequency Objescillator that runs parralel with a
+    SoundController object
+    Properties:
+        osc (Oscillator): the LFO's oscillator
+        freq (float): frequency of the LFO
+        time (float): time the LFO was created
+        mix (float): ratio between original and LFO sound
+            1 means the LFO controls the knob completely
+            0 means the sound is unaffected
+        sync (bool): This determines wether the Oscillator starts with the
+        start method (false) or from the creation of the object (true)
+        active (list): list of SoundController objects being controlled
+        enabled (bool): Whether the LFO is enabled or not
+    Methods:
+        draw: plot the graph of the LFO
+        start: runs the __start__ method as a thread
+        __start__: Controls a given sound or SoundController untill the
+        controller dies
+    """
 
-    def __init__(self, mode='low', cuttoff=10000, width=10, repeats=4, mix=1):
-        self.mode = mode
-        self.cuttoff = cuttoff
-        self.width = width
-        self.mix = mix
+    def __init__(self, form=Wave.SINE, freq=0.8):
+        """
+        Create an LFO object
+        Inputs:
+            form (int): the LFO's wave shape
+            freq (float): frequency of the LFO
+        Returns:
+            An LFO Object
+        """
+        self.osc = Oscillator()
+        self.osc.form = form
+        self.freq = freq
         self.enabled = False
-        self.repeats = repeats
+        self.active = []
+        self.time = time.time()
+        self.sync = True
+        self.mix = 0.2
 
     def draw(self, width, height, dpi=100):
+        """
+        Plot the time/volume graph for this LFO
+        Inputs:
+            width (int): width of the output image
+            height (int): height of the output image
+            dpi (int): resolution of the output data
+        Returns:
+            image (pygame.Surface): pygame image of the plot
+        """
+
+        # initialize the matplotlib figure for the final image
         plt.figure(figsize=(width / dpi, height / dpi), dpi=dpi)
 
-        b, a = self.__createButter__()
-        angularFreq, response = signal.freqz(b, a)
-        realFreq = sample_rate * angularFreq / (2 * np.pi)
+        # plot the osc
+        dur = 1 / self.freq
+        self.osc.plot(self.freq, dur)
+        plt.ylim(-1, 1)
+        plt.xlim(0, dur)
+        plt.title("LFO")
 
-        plt.semilogx(realFreq, abs(response))
-        ticks = [20, 50, 100, 200, 500, 1000, 2000, 5000, 10000]
-        labels = ["20", "50", "100", "200", "500", "1k", "2k", "5k", "10k"]
-        plt.xticks(ticks, labels)
-        plt.xlim([20, 20000])
-        plt.title("Filter/Equalizer")
+        # get the plot as an image
+        image = plt2Img(width, height)
+        return image
 
-        return plt2Img(width, height)
-
-    def run(self,  inputSignal):
+    def start(self, sController, key):
+        """
+        Controls the volume knob 'key' of a sController object while it is
+        still alive
+        This function calls the __start__ function as a thread
+        Inputs:
+            sController (SoundController): Controller to be enveloped
+            key (string): The key/name of the knob to be controlled
+        """
         if self.enabled:
-            origLen = len(inputSignal)
-            b, a = self.__createButter__()
-            inputSignal = np.concatenate(
-                (inputSignal, inputSignal, inputSignal), axis=None)
-            outputSignal = signal.filtfilt(b, a, inputSignal)
-            outputSignal = self.mix * outputSignal + \
-                (1 - self.mix) * inputSignal
-            outputSignal = outputSignal[origLen:2 * origLen]
-            return outputSignal
+            thread = Thread(target=self.__start__, args=(sController, key))
+            thread.daemon = True
+            thread.start()
+
+    def __start__(self, sController, key):
+        """
+        See LFO.Start
+        """
+        # keep track of this controller
+        self.active.append(sController)
+        # determine the oscilators start time depending on the sync
+        if self.sync:
+            start = self.time
         else:
-            return inputSignal
+            start = time.time()
+        while sController in self.active and sController.alive:
+            # work at half the sample rate
+            time.sleep(1 / sample_rate)
+            # elapsed is time since start
+            elapsed = time.time() - start
+            # get the amplitude of the wave  'elapsed' time since start
+            amplitude = self.osc.getToneData(self.freq, elapsed, singular=True)
+            # normalize it:
+            # ie. from (-1,1) --> (0,1)
+            vol = (amplitude + 1) / 2
+            # calculate the mixed volume
+            mixVol = vol * (self.mix) + (1 - self.mix)
+            sController.set_volume(mixVol, key)
+        # derefrence the controller for garbage collection
+        # once it has been killed
+        self.active.remove(sController)
 
-    def __createButter__(self):
-        # https://dsp.stackexchange.com/questions/49460/apply-low-pass-butterworth-filter-in-python
-        if self.mode == ('low' or 'high'):
-            normalizedCuttoff = self.cuttoff / \
-                (sample_rate / 2)  # Normalize the frequency
-            butter = signal.butter(
-                1 + self.repeats, normalizedCuttoff, btype=self.mode)
-        elif self.mode == 'band':
-            low = self.cuttoff / (sample_rate / 2)
-            high = (self.cuttoff + self.width) / (sample_rate / 2)
-            butter = signal.butter(
-                1 + self.repeats, [low, high], btype=self.mode)
-
-        return butter
 
 if __name__ == "__main__":
-
+    # dummy data, if synthEngine is run instead of imported
     mySynth = Synth(2)
     mySynth.sources[0].form = Wave.SINE
     mySynth.sources[1].form = Wave.SQUARE
-    #mySynth.sources[2].form = Wave.SINE
 
     mySynth.sources[0].scale = 0.5
-    #mySynth.sources[1].scale = 0.5
-    #mySynth.sources[2].scale = 1
-
-    #mySynth.sources[1].shift = 4 * np.pi/3
-
-    # mySynth.ffilter.draw()
-    mySynth.ffilter.mix = 0
-    # mySynth.draw(440)
-    mySynth.ffilter.mix = 0
-    # mySynth.draw(440)
+    mySynth.sources[1].shift = 2 * np.pi/3
 
     mySynth.adsr.Adur = 2
     mySynth.adsr.Ddur = 0.4
@@ -638,14 +827,7 @@ if __name__ == "__main__":
         mySynth.play(midi(k))
         time.sleep(0.100)
         mySynth.release(midi(k))
-        time.sleep(0.25)
+        time.sleep(1.00)
 
     while True:
-        myK(mySynth, 69)
-        # myK(mySynth,73)
-        # myK(mySynth,69)
-        # myK(mySynth,73)
-        # myK(mySynth,69)
-        # myK(mySynth,73)
-        # myK(mySynth,69)
-        # myK(mySynth,73)
+        myK(mySynth, 70)

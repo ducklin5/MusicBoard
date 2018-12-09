@@ -1,3 +1,12 @@
+# ---------------------------------------------------
+#    Name: Azeez  Abass
+#    ID: 1542780
+#    Name: Matthew Braun
+#    ID:
+#    CMPUT 274 EA1, Fall  2018
+#    Project: ZMat 2000 (Interface)
+# ---------------------------------------------------
+
 import pygame
 import serialReader
 import synthEngine as se
@@ -190,7 +199,6 @@ class SynthUI():
         # change the wave Here
         # - > Do CHANGE
         # Update plot
-        self.updatePlots()
         pass
 
     def setVol(self, Volume):
@@ -220,12 +228,6 @@ class SynthUI():
         gameDisplay.blit(self.lfoPlot,  (0 + plotPosx, 190 + plotPosy))
         gameDisplay.blit(self.filterPlot, (190 + plotPosx, 0 + plotPosy))
         gameDisplay.blit(self.adsrPlot, (190 + plotPosx, 190 + plotPosy))
-
-    def updatePlots(self):
-        self.synthPlot = self.synth.draw(440, 180, 180, 50)
-        self.filterPlot = self.synth.ffilter.draw(180, 180, 50)
-        self.lfoPlot = self.synth.lfo.draw(180, 180, 50)
-        self.adsrPlot = self.synth.adsr.draw(180, 180, 50)
 
     def updateSources(self):
         self.synthPlot = self.synth.draw(440, 180, 180, 50)
@@ -300,7 +302,7 @@ def run():
     octavenum = 72
     synthUIs = [SynthUI()]
     fullSynthList = True
-    if fullSynthList == True:
+    if fullSynthList:
 
         while len(synthUIs) < 10:
             synthUIs.append(SynthUI())
