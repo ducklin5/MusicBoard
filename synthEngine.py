@@ -33,7 +33,7 @@ channels = 1  # Number of channels to use, ie. mono/stereo. 1 means mono
 # https://stackoverflow.com/questions/18273722/pygame-sound-delay
 buffersize = 512  # reduced the buffer size to reduce lag
 
-pygame.mixer.pre_init(int(sample_rate / 2), size, channels, buffersize)
+pygame.mixer.pre_init(int(sample_rate), size, channels, buffersize)
 pygame.mixer.init()
 pygame.mixer.set_num_channels(100)  # Number of sounds that can play at once
 
@@ -668,25 +668,25 @@ class Envelope:
             sController (SoundController): Controller to be enveloped
             key (string): The key/name of the knob to be controlled
         """
-        if self.enabled:
-            thread = Thread(target=self.__release__, args=(sController, key))
-            thread.daemon = True
-            thread.start()
+        thread = Thread(target=self.__release__, args=(sController, key))
+        thread.daemon = True
+        thread.start()
 
     def __release__(self, sController, key):
         """
         See Envelope.Release
         """
-        # Change the volume during release time
-        start = time.time()
-        elapsed = 0
-        while elapsed < self.Rdur:
-            # set the volume at the sampling rate
-            time.sleep(1 / sample_rate)
-            elapsed = time.time() - start
-            # calculate the volume at the current time (linearly) and set it
-            currentVol = self.Sval - self.Sval * elapsed / self.Rdur
-            sController.set_volume(currentVol, key)
+        if self.enabled:
+            # Change the volume during release time
+            start = time.time()
+            elapsed = 0
+            while elapsed < self.Rdur:
+                # set the volume at the sampling rate
+                time.sleep(1 / sample_rate)
+                elapsed = time.time() - start
+                # calculate the volume at the current time (linearly) and set it
+                currentVol = self.Sval - self.Sval * elapsed / self.Rdur
+                sController.set_volume(currentVol, key)
 
         # Stop the sController Sound
         sController.stop()

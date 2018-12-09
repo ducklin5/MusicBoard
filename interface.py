@@ -241,6 +241,11 @@ class SynthUI():
     def updateADSR(self):
         self.adsrPlot = self.synth.adsr.draw(180, 180, 50)
 
+    def updatePlots(self):
+        self.updateSources()
+        self.updateFilter()
+        self.updateLFO()
+        self.updateADSR()
 
 def run():
     global inputs

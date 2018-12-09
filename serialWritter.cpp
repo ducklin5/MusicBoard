@@ -80,7 +80,7 @@ void update_dPins(){
     // print the digital pin and value to serial if its has changed
     for (int i = 0; i < dPinCount; i++) {
         int pin = dPins[i];
-        int newVal = not digitalRead(pin);
+        int newVal = not digitalRead(pin); // invert this fo push buttons
 
         if (newVal != dpinStates[i]) {
             Serial.print(pin);
