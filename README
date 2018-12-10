@@ -12,6 +12,7 @@ Included Files:
     * serialReader.py
     * serialWritter.cpp
     * schematics.jpg
+    * Makefile
 
 Interface.py program contains 7 functions and 1 class:
    
