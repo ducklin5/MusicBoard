@@ -31,7 +31,7 @@ size = -16
 channels = 1  # Number of channels to use, ie. mono/stereo. 1 means mono
 
 # https://stackoverflow.com/questions/18273722/pygame-sound-delay
-buffersize = 512  # reduced the buffer size to reduce lag
+buffersize = 256  # reduced the buffer size to reduce lag
 
 pygame.mixer.pre_init(int(sample_rate), size, channels, buffersize)
 pygame.mixer.init()
@@ -125,13 +125,13 @@ def noise(timePoint):
         An array of random floats the size of the input if it is an iterable
     """
     random.seed()
-    if timePoint is (int or float):
-        return 2 * random.random() - 1
-    elif timePoint is (iter):
+    if np.size(timePoint) > 1 :
         out = []
-        for i in input:
+        for i in timePoint:
             out.append(2 * random.random() - 1)
         return np.array(out)
+    else:
+        return 2 * random.random() - 1
 
 
 class Wave(Enum):
@@ -211,7 +211,7 @@ class Oscillator:
         play: play a given frequency for some duration
     """
 
-    def __init__(self, form=Wave.NOISE, scale=1, shift=0):
+    def __init__(self, form=Wave.SQUARE, scale=1, shift=0):
         """
         Create a Oscillator with all its properties
         Inputs:
@@ -444,7 +444,7 @@ class Filter:
         of the butterworth filter
     """
 
-    def __init__(self, mode='low', cuttoff=10000, width=10, repeats=4, mix=1):
+    def __init__(self, mode='high', cuttoff=1000, width=10, repeats=4, mix=1):
         """
         Create a Filter object with the given parameters.
         Inputs:
@@ -533,7 +533,7 @@ class Filter:
             https://stackoverflow.com/questions/12093594/how-to-implement-band-pass-butterworth-filter-with-scipy-signal-butter
         """
         # calculate coefficients for low pass or high pass
-        if self.mode == ('low' or 'high'):
+        if self.mode in ['low','high']:
             # Normalize the frequency
             normalizedCuttoff = self.cuttoff / (sample_rate / 2)
             butter = signal.butter(
