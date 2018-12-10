@@ -37,7 +37,7 @@ Volume = 1
 
 def selectMode(j, JoystickButton, JoystickVer, JoystickHor, currentSynth, numSynths, synthUIs, state):
     if JoystickButton:
-        pygame.time.delay(300) #prevents skipping selections
+        pygame.time.delay(300)  # prevents skipping selections
         if currentSynth == numSynths:
             synthUIs.append(SynthUI())
             numSynths = len(synthUIs)
@@ -81,33 +81,37 @@ def selectGraphMode(JoystickButton, JoystickVer, JoystickHor, currentGraph, stat
         pygame.time.delay(300)  # prevents skipping selections
     return state, currentGraph
 
-def editSourcesMode(editingThisSource,Waves,updateSources,incrementValue,currentWaveForm,SourcesSelectList,WaveFormList,state,sources,currentSource,JoystickVer,JoystickHor,JoystickButton,LeftButton,RightButton,gameDisplay):
+
+def editSourcesMode(editingThisSource, Waves, updateSources, incrementValue, currentWaveForm, SourcesSelectList, WaveFormList, state, sources, currentSource, JoystickVer, JoystickHor, JoystickButton, LeftButton, RightButton, gameDisplay):
     i = 0
     for string in SourcesSelectList:
         SourcesSelectString = smallerFont.render(string, True, blue)
-        gameDisplay.blit(SourcesSelectString,(315,10+i))
-        i+=40
-    SourcesValueList = ['{}'.format(WaveFormList[currentWaveForm]),'{}'.format(sources[editingThisSource].scale),'{}'.format(sources[editingThisSource].shift),'{}'.format(len(sources)),'{}'.format(editingThisSource+1),'{}'.format(incrementValue),"Update","Back"]
+        gameDisplay.blit(SourcesSelectString, (315, 10 + i))
+        i += 40
+    SourcesValueList = ['{}'.format(WaveFormList[currentWaveForm]), '{}'.format(sources[editingThisSource].scale), '{}'.format(
+        sources[editingThisSource].shift), '{}'.format(len(sources)), '{}'.format(editingThisSource + 1), '{}'.format(incrementValue), "Update", "Back"]
     i = 0
     for value in SourcesValueList:
         SourcesSelectString = smallerFont.render(value, True, red)
-        gameDisplay.blit(SourcesSelectString,(235,10+i))
-        i+=40
+        gameDisplay.blit(SourcesSelectString, (235, 10 + i))
+        i += 40
     if RightButton:
         if currentSource == 0:
-            if currentWaveForm >= len(WaveFormList)-1:
+            if currentWaveForm >= len(WaveFormList) - 1:
                 currentWaveForm = 0
             else:
                 currentWaveForm += 1
             sources[editingThisSource].form = Waves[currentWaveForm]
         elif currentSource == 1:
-            sources[editingThisSource].scale = round(sources[editingThisSource].scale+incrementValue,3)
+            sources[editingThisSource].scale = round(
+                sources[editingThisSource].scale + incrementValue, 3)
         elif currentSource == 2:
-            sources[editingThisSource].shift = round(sources[editingThisSource].shift+incrementValue,3)
+            sources[editingThisSource].shift = round(
+                sources[editingThisSource].shift + incrementValue, 3)
         elif currentSource == 3:
             sources.append(se.Oscillator())
         elif currentSource == 4:
-            if editingThisSource >= len(sources)-1:
+            if editingThisSource >= len(sources) - 1:
                 editingThisSource = 0
             else:
                 editingThisSource += 1
@@ -116,27 +120,29 @@ def editSourcesMode(editingThisSource,Waves,updateSources,incrementValue,current
             if incrementValue >= 10:
                 pass
             else:
-                incrementValue = round(incrementValue*10,3)
+                incrementValue = round(incrementValue * 10, 3)
         else:
             pass
-        pygame.time.delay(300) #prevents skipping selections
+        pygame.time.delay(300)  # prevents skipping selections
 
     if LeftButton:
         if currentSource == 0:
             if currentWaveForm <= 0:
-                currentWaveForm = len(WaveFormList)-1
+                currentWaveForm = len(WaveFormList) - 1
             else:
                 currentWaveForm -= 1
             sources[editingThisSource].form = Waves[currentWaveForm]
         elif currentSource == 1:
-            sources[editingThisSource].scale = round(sources[editingThisSource].scale-incrementValue,3)
+            sources[editingThisSource].scale = round(
+                sources[editingThisSource].scale - incrementValue, 3)
         elif currentSource == 2:
-            sources[editingThisSource].shift = round(sources[editingThisSource].shift-incrementValue,3)
+            sources[editingThisSource].shift = round(
+                sources[editingThisSource].shift - incrementValue, 3)
         elif currentSource == 3:
             sources.append(se.Oscillator())
         elif currentSource == 4:
             if editingThisSource <= 0:
-                editingThisSource = len(sources)-1
+                editingThisSource = len(sources) - 1
             else:
                 editingThisSource -= 1
 
@@ -144,10 +150,10 @@ def editSourcesMode(editingThisSource,Waves,updateSources,incrementValue,current
             if incrementValue <= 0.001:
                 pass
             else:
-                incrementValue = round(incrementValue/10,3)
+                incrementValue = round(incrementValue / 10, 3)
         else:
             pass
-        pygame.time.delay(300) #prevents skipping selections
+        pygame.time.delay(300)  # prevents skipping selections
 
     if JoystickButton:
         if currentSource == 6:
@@ -157,88 +163,90 @@ def editSourcesMode(editingThisSource,Waves,updateSources,incrementValue,current
             state = 1
         else:
             pass
-        pygame.time.delay(300) #prevents skipping selections
+        pygame.time.delay(300)  # prevents skipping selections
 
     if JoystickVer == 1000:
-        if currentSource == len(SourcesValueList)-1:
+        if currentSource == len(SourcesValueList) - 1:
             currentSource = 0
         else:
             currentSource += 1
-        pygame.time.delay(300) #prevents skipping selections
+        pygame.time.delay(300)  # prevents skipping selections
     elif JoystickVer == 0:
         if currentSource == 0:
-            currentSource = len(SourcesValueList)-1
+            currentSource = len(SourcesValueList) - 1
         else:
             currentSource -= 1
-        pygame.time.delay(300) #prevents skipping selections
- 
+        pygame.time.delay(300)  # prevents skipping selections
+
     # gameDisplay.blit(SourcesValueText,(220,10))
 
     return state, sources, currentSource, incrementValue, currentWaveForm, editingThisSource
 
-def editFilterMode(incrementValue,FilterModeList,CurrentFilterMode,FilterSelectList,updateFilter,state,ffilter,currentFilter,JoystickVer,JoystickHor,JoystickButton,LeftButton,RightButton,gameDisplay):    
+
+def editFilterMode(incrementValue, FilterModeList, CurrentFilterMode, FilterSelectList, updateFilter, state, ffilter, currentFilter, JoystickVer, JoystickHor, JoystickButton, LeftButton, RightButton, gameDisplay):
     i = 0
     for string in FilterSelectList:
         FilterSelectString = smallerFont.render(string, True, blue)
-        gameDisplay.blit(FilterSelectString,(315,10+i))
-        i+=40
-    FilterValueList = ['{}'.format(ffilter.mode),'{}'.format(ffilter.cuttoff),'{}'.format(ffilter.width),'{}'.format(ffilter.mix),'{}'.format(ffilter.enabled),'{}'.format(ffilter.repeats),'{}'.format(incrementValue),"Update","Back"]
+        gameDisplay.blit(FilterSelectString, (315, 10 + i))
+        i += 40
+    FilterValueList = ['{}'.format(ffilter.mode), '{}'.format(ffilter.cuttoff), '{}'.format(ffilter.width), '{}'.format(
+        ffilter.mix), '{}'.format(ffilter.enabled), '{}'.format(ffilter.repeats), '{}'.format(incrementValue), "Update", "Back"]
     i = 0
     for value in FilterValueList:
         FilterSelectString = smallerFont.render(value, True, red)
-        gameDisplay.blit(FilterSelectString,(235,10+i))
-        i+=40
+        gameDisplay.blit(FilterSelectString, (235, 10 + i))
+        i += 40
     if RightButton:
         if currentFilter == 0:
-            if CurrentFilterMode >= len(FilterModeList)-1:
+            if CurrentFilterMode >= len(FilterModeList) - 1:
                 CurrentFilterMode = 0
             else:
                 CurrentFilterMode += 1
             ffilter.mode = FilterModeList[CurrentFilterMode]
         elif currentFilter == 1:
-            ffilter.cuttoff = round(ffilter.cuttoff+incrementValue)
+            ffilter.cuttoff = round(ffilter.cuttoff + incrementValue)
         elif currentFilter == 2:
-            ffilter.width = round(ffilter.width+incrementValue)
+            ffilter.width = round(ffilter.width + incrementValue)
         elif currentFilter == 3:
-            ffilter.mix = round(ffilter.mix+incrementValue)
+            ffilter.mix = round(ffilter.mix + incrementValue)
         elif currentFilter == 4:
             ffilter.enabled = not ffilter.enabled
         elif currentFilter == 5:
-            ffilter.repeats = round(ffilter.repeats+incrementValue)
+            ffilter.repeats = round(ffilter.repeats + incrementValue)
         elif currentFilter == 6:
             if incrementValue >= 10000:
                 pass
             else:
-                incrementValue = round(incrementValue*10)
+                incrementValue = round(incrementValue * 10)
         else:
             pass
-        pygame.time.delay(300) #prevents skipping selections
+        pygame.time.delay(300)  # prevents skipping selections
 
     if LeftButton:
         if currentFilter == 0:
             if CurrentFilterMode <= 0:
-                CurrentFilterMode = len(FilterModeList)-1
+                CurrentFilterMode = len(FilterModeList) - 1
             else:
                 CurrentFilterMode -= 1
             ffilter.mode = FilterModeList[CurrentFilterMode]
         elif currentFilter == 1:
-            ffilter.cuttoff = round(ffilter.cuttoff-incrementValue)
+            ffilter.cuttoff = round(ffilter.cuttoff - incrementValue)
         elif currentFilter == 2:
-            ffilter.width = round(ffilter.width-incrementValue)
+            ffilter.width = round(ffilter.width - incrementValue)
         elif currentFilter == 3:
-            ffilter.mix = round(ffilter.mix-incrementValue)
+            ffilter.mix = round(ffilter.mix - incrementValue)
         elif currentFilter == 4:
             ffilter.enabled = not ffilter.enabled
         elif currentFilter == 5:
-            ffilter.repeats = round(ffilter.repeats-incrementValue)
+            ffilter.repeats = round(ffilter.repeats - incrementValue)
         elif currentFilter == 6:
             if incrementValue <= 1:
                 pass
             else:
-                incrementValue = round(incrementValue/10)
+                incrementValue = round(incrementValue / 10)
         else:
             pass
-        pygame.time.delay(300) #prevents skipping selections
+        pygame.time.delay(300)  # prevents skipping selections
 
     if JoystickButton:
         if currentFilter == 4:
@@ -250,80 +258,82 @@ def editFilterMode(incrementValue,FilterModeList,CurrentFilterMode,FilterSelectL
             state = 1
         else:
             pass
-        pygame.time.delay(300) #prevents skipping selections
+        pygame.time.delay(300)  # prevents skipping selections
 
     if JoystickVer == 1000:
-        if currentFilter == len(FilterValueList)-1:
+        if currentFilter == len(FilterValueList) - 1:
             currentFilter = 0
         else:
             currentFilter += 1
-        pygame.time.delay(300) #prevents skipping selections
+        pygame.time.delay(300)  # prevents skipping selections
     elif JoystickVer == 0:
         if currentFilter == 0:
-            currentFilter = len(FilterValueList)-1
+            currentFilter = len(FilterValueList) - 1
         else:
             currentFilter -= 1
-        pygame.time.delay(300) #prevents skipping selections
- 
+        pygame.time.delay(300)  # prevents skipping selections
+
     # gameDisplay.blit(FilterValueText,(220,10))
 
     return state, ffilter, currentFilter, incrementValue, CurrentFilterMode
 
-def editLFOMode(Waves,updateLFO,incrementValue,currentWaveForm,LFOSelectList,WaveFormList,state,lfo,currentLFO,JoystickVer,JoystickHor,JoystickButton,LeftButton,RightButton,gameDisplay):
+
+def editLFOMode(Waves, updateLFO, incrementValue, currentWaveForm, LFOSelectList, WaveFormList, state, lfo, currentLFO, JoystickVer, JoystickHor, JoystickButton, LeftButton, RightButton, gameDisplay):
     i = 0
     for string in LFOSelectList:
         LFOSelectString = smallerFont.render(string, True, blue)
-        gameDisplay.blit(LFOSelectString,(315,10+i))
-        i+=40
-    LFOValueList = ['{}'.format(WaveFormList[currentWaveForm]),'{}'.format(lfo.freq),'{}'.format(lfo.enabled),'{}'.format(lfo.mix),'{}'.format(incrementValue),"Update","Back"]
+        gameDisplay.blit(LFOSelectString, (315, 10 + i))
+        i += 40
+    LFOValueList = ['{}'.format(WaveFormList[currentWaveForm]), '{}'.format(lfo.freq), '{}'.format(
+        lfo.enabled), '{}'.format(lfo.mix), '{}'.format(incrementValue), "Update", "Back"]
     i = 0
     for value in LFOValueList:
         LFOSelectString = smallerFont.render(value, True, red)
-        gameDisplay.blit(LFOSelectString,(235,10+i))
-        i+=40
+        gameDisplay.blit(LFOSelectString, (235, 10 + i))
+        i += 40
     if RightButton:
         if currentLFO == 0:
-            if currentWaveForm >= len(WaveFormList)-1:
+            if currentWaveForm >= len(WaveFormList) - 1:
                 currentWaveForm = 0
             else:
                 currentWaveForm += 1
             lfo.osc.form = Waves[currentWaveForm]
         elif currentLFO == 1:
-            lfo.freq = round(lfo.freq+incrementValue,3)
+            lfo.freq = round(lfo.freq + incrementValue, 3)
         elif currentLFO == 2:
             lfo.enabled = not lfo.enabled
         elif currentLFO == 3:
-            lfo.mix = round(lfo.mix+incrementValue,3)
+            lfo.mix = round(lfo.mix + incrementValue, 3)
         elif currentLFO == 4:
             if incrementValue >= 100:
                 pass
             else:
-                incrementValue = round(incrementValue*10,3)
+                incrementValue = round(incrementValue * 10, 3)
         else:
             pass
-        pygame.time.delay(300) #prevents skipping selections
+        pygame.time.delay(300)  # prevents skipping selections
 
     if LeftButton:
         if currentLFO == 0:
             if currentWaveForm <= 0:
-                currentWaveForm = len(WaveFormList)-1
+                currentWaveForm = len(WaveFormList) - 1
             else:
                 currentWaveForm -= 1
             lfo.osc.form = Waves[currentWaveForm]
         elif currentLFO == 1:
-            lfo.freq = round(lfo.freq-incrementValue,3)
+            lfo.freq = round(lfo.freq - incrementValue, 3)
         elif currentLFO == 2:
             lfo.enabled = not lfo.enabled
         elif currentLFO == 3:
-            lfo.mix = round(lfo.mix-incrementValue,3)
+            lfo.mix = round(lfo.mix - incrementValue, 3)
         elif currentLFO == 4:
             if incrementValue <= 0.001:
                 pass
             else:
-                incrementValue = round(incrementValue/10,3)
+                incrementValue = round(incrementValue / 10, 3)
         else:
             pass
-        pygame.time.delay(300) #prevents skipping selections
+        pygame.time.delay(300)  # prevents skipping selections
 
     if JoystickButton:
         if currentLFO == 2:
@@ -335,27 +345,29 @@ def editLFOMode(Waves,updateLFO,incrementValue,currentWaveForm,LFOSelectList,Wav
             state = 1
         else:
             pass
-        pygame.time.delay(300) #prevents skipping selections
+        pygame.time.delay(300)  # prevents skipping selections
 
     if JoystickVer == 1000:
-        if currentLFO == len(LFOValueList)-1:
+        if currentLFO == len(LFOValueList) - 1:
             currentLFO = 0
         else:
             currentLFO += 1
-        pygame.time.delay(300) #prevents skipping selections
+        pygame.time.delay(300)  # prevents skipping selections
     elif JoystickVer == 0:
         if currentLFO == 0:
-            currentLFO = len(LFOValueList)-1
+            currentLFO = len(LFOValueList) - 1
         else:
             currentLFO -= 1
-        pygame.time.delay(300) #prevents skipping selections
- 
+        pygame.time.delay(300)  # prevents skipping selections
+
     # gameDisplay.blit(LFOValueText,(220,10))
 
     return state, lfo, currentLFO, incrementValue, currentWaveForm
 
-def editADSRMode(ADSRSelectList,incrementValue,updateADSR,adsr,JoystickVer,JoystickHor,JoystickButton,LeftButton,RightButton,gameDisplay,state,currentADSR):
-    ADSRValueList = ['{}'.format(adsr.Adur),'{}'.format(adsr.ADval),'{}'.format(adsr.Ddur),'{}'.format(adsr.Sval),'{}'.format(adsr.Rdur),'{}'.format(adsr.enabled),'{}'.format(incrementValue),'Update','Back']
+
+def editADSRMode(ADSRSelectList, incrementValue, updateADSR, adsr, JoystickVer, JoystickHor, JoystickButton, LeftButton, RightButton, gameDisplay, state, currentADSR):
+    ADSRValueList = ['{}'.format(adsr.Adur), '{}'.format(adsr.ADval), '{}'.format(adsr.Ddur), '{}'.format(
+        adsr.Sval), '{}'.format(adsr.Rdur), '{}'.format(adsr.enabled), '{}'.format(incrementValue), 'Update', 'Back']
     i = 0
     for string in ADSRSelectList:
         ADSRSelectString = smallerFont.render(string, True, blue)
@@ -507,6 +519,7 @@ class SynthUI():
         self.updateLFO()
         self.updateADSR()
 
+
 def run():
     global inputs
     # import your script B
@@ -523,7 +536,6 @@ def run():
     Button1 = pygame.image.load('images/Button1Small.png')
     Button1Pressed = pygame.image.load('images/Button1PressedSmall.png')
     Knob1 = pygame.image.load('images/Knob1.png')
-    SynthList = pygame.image.load('images/SynthList.png')
     quit = False
 
     # Defining GUI positions in window
@@ -587,16 +599,21 @@ def run():
     incrementValue = 0.1
 
     j = 0
-    ADSRSelectList = ["Attack Duration","Attack Value","Decay Duration","Sustain Value","Release Duration","Enabled","Increment Value"]
-    LFOSelectList = ["Waveform","Frequency","Enabled","Mix","Increment Value"]
-    FilterSelectList = ["Mode","Cutoff","Width","Mix","Enabled","# Repeats","Increment Value"]
-    FilterModeList = ['low','high','band']
+    ADSRSelectList = ["Attack Duration", "Attack Value", "Decay Duration",
+                      "Sustain Value", "Release Duration", "Enabled", "Increment Value"]
+    LFOSelectList = ["Waveform", "Frequency",
+                     "Enabled", "Mix", "Increment Value"]
+    FilterSelectList = ["Mode", "Cutoff", "Width",
+                        "Mix", "Enabled", "# Repeats", "Increment Value"]
+    FilterModeList = ['low', 'high', 'band']
     CurrentFilterMode = 0
-    WaveFormList = ["Sine","Saw","Square","Triangle","Noise"]
+    WaveFormList = ["Sine", "Saw", "Square", "Triangle", "Noise"]
     currentWaveForm = 0
-    SourcesSelectList = ["Waveform","Scale","Shift","# of Sources","Current Source","Increment Value"]
+    SourcesSelectList = ["Waveform", "Scale", "Shift",
+                         "# of Sources", "Current Source", "Increment Value"]
     currentSource = 0
-    Waves = [se.Wave.SINE,se.Wave.SAW,se.Wave.SQUARE,se.Wave.TRIANGLE,se.Wave.NOISE]
+    Waves = [se.Wave.SINE, se.Wave.SAW, se.Wave.SQUARE,
+             se.Wave.TRIANGLE, se.Wave.NOISE]
     editingThisSource = 0
     while not quit:
 
@@ -673,26 +690,28 @@ def run():
         if state > 1:
             plotPosx = 560
             plotPosy = 7
-            gameDisplay.blit(SelectGraphBox, (plotPosx - 5 + (currentGraph[0] * 190), plotPosy - 5 + (currentGraph[1] * 190)))
+            gameDisplay.blit(SelectGraphBox, (plotPosx - 5 +
+                                              (currentGraph[0] * 190), plotPosy - 5 + (currentGraph[1] * 190)))
 
         if state == 3:
-            gameDisplay.blit(SelectADSRBox,(230,5+(40*currentSource)))
+            gameDisplay.blit(SelectADSRBox, (230, 5 + (40 * currentSource)))
 
-        #Displaying LFO selection box if applicable
+        # Displaying LFO selection box if applicable
         if state == 4:
-            gameDisplay.blit(SelectADSRBox,(230,5+(40*currentLFO)))
+            gameDisplay.blit(SelectADSRBox, (230, 5 + (40 * currentLFO)))
 
-        #Displaying Filter selection box if applicable
+        # Displaying Filter selection box if applicable
         if state == 5:
-            gameDisplay.blit(SelectADSRBox,(230,5+(40*currentFilter)))
+            gameDisplay.blit(SelectADSRBox, (230, 5 + (40 * currentFilter)))
 
-        #Displaying ADSR selection box if applicable
+        # Displaying ADSR selection box if applicable
         if state == 6:
             gameDisplay.blit(SelectADSRBox, (230, 5 + (40 * currentADSR)))
 
         synthUIs[currentSynth - 1].drawUI(gameDisplay)
         synthUIs[currentSynth - 1].playKeys(Piano, octavenum)
-        synthUIs[currentSynth - 1].drawPiano(gameDisplay, Piano, pKey, xThePiano, yThePiano)
+        synthUIs[currentSynth -
+                 1].drawPiano(gameDisplay, Piano, pKey, xThePiano, yThePiano)
         if state == 1:
             j, state, currentSynth, numSynths = selectMode(
                 j, JoystickButton, JoystickVer, JoystickHor, currentSynth, numSynths, synthUIs, state)
@@ -700,23 +719,29 @@ def run():
             state, currentGraph = selectGraphMode(
                 JoystickButton, JoystickVer, JoystickHor, currentGraph, state)
         elif state == 3:
-            state, synthUIs[currentSynth-1].synth.sources, currentSource, incrementValue, currentWaveForm, editingThisSource = editSourcesMode(editingThisSource,
-                Waves,synthUIs[currentSynth-1].updateSources,incrementValue,currentWaveForm,SourcesSelectList,WaveFormList,state,synthUIs[currentSynth-1].synth.sources,
-                currentSource,JoystickVer,JoystickHor,JoystickButton,LeftButton,RightButton,gameDisplay)
+            state, synthUIs[currentSynth - 1].synth.sources, currentSource, incrementValue, currentWaveForm, editingThisSource = editSourcesMode(editingThisSource,
+                                                                                                                                                 Waves, synthUIs[currentSynth - 1].updateSources, incrementValue, currentWaveForm, SourcesSelectList, WaveFormList, state, synthUIs[
+                                                                                                                                                     currentSynth - 1].synth.sources,
+                                                                                                                                                 currentSource, JoystickVer, JoystickHor, JoystickButton, LeftButton, RightButton, gameDisplay)
         elif state == 4:
-            state, synthUIs[currentSynth-1].synth.lfo, currentLFO, incrementValue, currentWaveForm = editLFOMode(
-                Waves,synthUIs[currentSynth-1].updateLFO,incrementValue,currentWaveForm,LFOSelectList,WaveFormList,
-                state,synthUIs[currentSynth-1].synth.lfo,currentLFO,JoystickVer,JoystickHor,JoystickButton,
-                LeftButton,RightButton,gameDisplay)
+            state, synthUIs[currentSynth - 1].synth.lfo, currentLFO, incrementValue, currentWaveForm = editLFOMode(
+                Waves, synthUIs[
+                    currentSynth - 1].updateLFO, incrementValue, currentWaveForm, LFOSelectList, WaveFormList,
+                state, synthUIs[
+                    currentSynth - 1].synth.lfo, currentLFO, JoystickVer, JoystickHor, JoystickButton,
+                LeftButton, RightButton, gameDisplay)
         elif state == 5:
-            state, synthUIs[currentSynth-1].synth.ffilter, currentFilter, incrementValue, CurrentFilterMode = editFilterMode(
-                incrementValue,FilterModeList,CurrentFilterMode,FilterSelectList,synthUIs[currentSynth-1].updateFilter,
-                state,synthUIs[currentSynth-1].synth.ffilter,currentFilter,JoystickVer,JoystickHor,JoystickButton,
-                LeftButton,RightButton,gameDisplay)
+            state, synthUIs[currentSynth - 1].synth.ffilter, currentFilter, incrementValue, CurrentFilterMode = editFilterMode(
+                incrementValue, FilterModeList, CurrentFilterMode, FilterSelectList, synthUIs[
+                    currentSynth - 1].updateFilter,
+                state, synthUIs[
+                    currentSynth - 1].synth.ffilter, currentFilter, JoystickVer, JoystickHor, JoystickButton,
+                LeftButton, RightButton, gameDisplay)
         elif state == 6:
-            state, synthUIs[currentSynth-1].synth.adsr, currentADSR, incrementValue = editADSRMode(
-                ADSRSelectList,incrementValue,synthUIs[currentSynth-1].updateADSR,synthUIs[currentSynth-1].synth.adsr,
-                JoystickVer,JoystickHor,JoystickButton,LeftButton,RightButton,gameDisplay,state,currentADSR)
+            state, synthUIs[currentSynth - 1].synth.adsr, currentADSR, incrementValue = editADSRMode(
+                ADSRSelectList, incrementValue, synthUIs[
+                    currentSynth - 1].updateADSR, synthUIs[currentSynth - 1].synth.adsr,
+                JoystickVer, JoystickHor, JoystickButton, LeftButton, RightButton, gameDisplay, state, currentADSR)
 
         pygame.display.update()
         clock.tick(30)
