@@ -27,13 +27,13 @@ Volume = 1
 
 def selectMode(j,JoystickButton,JoystickVer,JoystickHor,currentSynth,numSynths,synthUIs,state): 
     if JoystickButton:
+        pygame.time.delay(300) #prevents skipping selections
         if currentSynth == numSynths:
             synthUIs.append(SynthUI())
             numSynths = len(synthUIs)
             synthUIs[currentSynth-1].name = defaultFont.render("Synth {}".format(currentSynth), True, blue)
         else:
             state = 2
-        pygame.time.delay(300) #prevents skipping selections
     if JoystickVer == 1000:
         if currentSynth == numSynths:
             currentSynth = 1
@@ -55,10 +55,10 @@ def selectGraphMode(JoystickButton,JoystickVer,JoystickHor,currentGraph,state):
             if currentGraph[1] == 0:
                 state = 3 #Premixer Sound Wave Mode
             else:
-                state = 4 #LFO Mode
+                state = 4 #Filter Mode
         else:
             if currentGraph[1] == 0:
-                state = 5 #Filter Mode
+                state = 5 #LFO Mode
             else:
                 state = 6 #ADSR Mode
     if JoystickVer == 1000 or JoystickVer == 0:
@@ -70,24 +70,196 @@ def selectGraphMode(JoystickButton,JoystickVer,JoystickHor,currentGraph,state):
     return state, currentGraph
 
 
-def editSourceMode(state,sources,currentSources,JoystickVer,JoystickHor,JoystickButton,LeftButton,RightButton,gameDisplay):
+def editSourceMode(updateSources,state,sources,currentSources,JoystickVer,JoystickHor,JoystickButton,LeftButton,RightButton,gameDisplay):
     pass
 
-def editFilterMode(state,ffilter,currentFilter,JoystickVer,JoystickHor,JoystickButton,LeftButton,RightButton,gameDisplay):
-    pass
+def editFilterMode(incrementValue,FilterModeList,CurrentFilterMode,FilterSelectList,updateFilter,state,ffilter,currentFilter,JoystickVer,JoystickHor,JoystickButton,LeftButton,RightButton,gameDisplay):    
+    i = 0
+    for string in FilterSelectList:
+        FilterSelectString = smallerFont.render(string, True, blue)
+        gameDisplay.blit(FilterSelectString,(315,10+i))
+        i+=40
+    FilterValueList = ['{}'.format(ffilter.mode),'{}'.format(ffilter.cuttoff),'{}'.format(ffilter.width),'{}'.format(ffilter.mix),'{}'.format(ffilter.enabled),'{}'.format(ffilter.repeats),'{}'.format(incrementValue),"Update","Back"]
+    i = 0
+    for value in FilterValueList:
+        FilterSelectString = smallerFont.render(value, True, red)
+        gameDisplay.blit(FilterSelectString,(235,10+i))
+        i+=40
+    if RightButton:
+        if currentFilter == 0:
+            if CurrentFilterMode >= len(FilterModeList)-1:
+                CurrentFilterMode = 0
+            else:
+                CurrentFilterMode += 1
+            ffilter.mode = FilterModeList[CurrentFilterMode]
+        elif currentFilter == 1:
+            ffilter.cuttoff = round(ffilter.cuttoff+incrementValue)
+        elif currentFilter == 2:
+            ffilter.width = round(ffilter.width+incrementValue)
+        elif currentFilter == 3:
+            ffilter.mix = round(ffilter.mix+incrementValue)
+        elif currentFilter == 4:
+            ffilter.enabled = not ffilter.enabled
+        elif currentFilter == 5:
+            ffilter.repeats = round(ffilter.repeats+incrementValue)
+        elif currentFilter == 6:
+            if incrementValue >= 10000:
+                pass
+            else:
+                incrementValue = round(incrementValue*10)
+        else:
+            pass
+        pygame.time.delay(300) #prevents skipping selections
 
-def editLFOMode(state,lfo,currentLFO,JoystickVer,JoystickHor,JoystickButton,LeftButton,RightButton,gameDisplay):
-    pass
+    if LeftButton:
+        if currentFilter == 0:
+            if CurrentFilterMode <= 0:
+                CurrentFilterMode = len(FilterModeList)-1
+            else:
+                CurrentFilterMode -= 1
+            ffilter.mode = FilterModeList[CurrentFilterMode]
+        elif currentFilter == 1:
+            ffilter.cuttoff = round(ffilter.cuttoff-incrementValue)
+        elif currentFilter == 2:
+            ffilter.width = round(ffilter.width-incrementValue)
+        elif currentFilter == 3:
+            ffilter.mix = round(ffilter.mix-incrementValue)
+        elif currentFilter == 4:
+            ffilter.enabled = not ffilter.enabled
+        elif currentFilter == 5:
+            ffilter.repeats = round(ffilter.repeats-incrementValue)
+        elif currentFilter == 6:
+            if incrementValue <= 1:
+                pass
+            else:
+                incrementValue = round(incrementValue/10)
+        else:
+            pass
+        pygame.time.delay(300) #prevents skipping selections
 
-def editADSRMode(incrementValue,updateADSR,adsr,JoystickVer,JoystickHor,JoystickButton,LeftButton,RightButton,gameDisplay,state,currentADSR):
-    ADSRSelectList = ["Attack Duration","Attack Value","Decay Duration","Sustain Value","Release Duration","Enabled","Increment Value"]
+    if JoystickButton:
+        if currentFilter == 4:
+            ffilter.enabled = not ffilter.enabled
+        elif currentFilter == 7:
+            updateFilter()
+        elif currentFilter == 8:
+            updateFilter()
+            state = 1
+        else:
+            pass
+        pygame.time.delay(300) #prevents skipping selections
+
+    if JoystickVer == 1000:
+        if currentFilter == len(FilterValueList)-1:
+            currentFilter = 0
+        else:
+            currentFilter += 1
+        pygame.time.delay(300) #prevents skipping selections
+    elif JoystickVer == 0:
+        if currentFilter == 0:
+            currentFilter = len(FilterValueList)-1
+        else:
+            currentFilter -= 1
+        pygame.time.delay(300) #prevents skipping selections
+ 
+    # gameDisplay.blit(FilterValueText,(220,10))
+
+    return state, ffilter, currentFilter, incrementValue, CurrentFilterMode
+
+def editLFOMode(Waves,updateLFO,incrementValue,WaveFormIndex,LFOSelectList,WaveFormList,state,lfo,currentLFO,JoystickVer,JoystickHor,JoystickButton,LeftButton,RightButton,gameDisplay):
     
+    
+    i = 0
+    for string in LFOSelectList:
+        LFOSelectString = smallerFont.render(string, True, blue)
+        gameDisplay.blit(LFOSelectString,(315,10+i))
+        i+=40
+    LFOValueList = ['{}'.format(WaveFormList[WaveFormIndex]),'{}'.format(lfo.freq),'{}'.format(lfo.enabled),'{}'.format(lfo.mix),'{}'.format(incrementValue),"Update","Back"]
+    i = 0
+    for value in LFOValueList:
+        LFOSelectString = smallerFont.render(value, True, red)
+        gameDisplay.blit(LFOSelectString,(235,10+i))
+        i+=40
+    if RightButton:
+        if currentLFO == 0:
+            if WaveFormIndex >= len(WaveFormList)-1:
+                WaveFormIndex = 0
+            else:
+                WaveFormIndex += 1
+            lfo.osc.form = Waves[WaveFormIndex]
+        elif currentLFO == 1:
+            lfo.freq = round(lfo.freq+incrementValue,3)
+        elif currentLFO == 2:
+            lfo.enabled = not lfo.enabled
+        elif currentLFO == 3:
+            lfo.mix = round(lfo.mix+incrementValue,3)
+        elif currentLFO == 4:
+            if incrementValue >= 100:
+                pass
+            else:
+                incrementValue = round(incrementValue*10,3)
+        else:
+            pass
+        pygame.time.delay(300) #prevents skipping selections
+
+    if LeftButton:
+        if currentLFO == 0:
+            if WaveFormIndex <= 0:
+                WaveFormIndex = len(WaveFormList)-1
+            else:
+                WaveFormIndex -= 1
+            lfo.osc.form = Waves[WaveFormIndex]
+        elif currentLFO == 1:
+            lfo.freq = round(lfo.freq-incrementValue,3)
+        elif currentLFO == 2:
+            lfo.enabled = not lfo.enabled
+        elif currentLFO == 3:
+            lfo.mix = round(lfo.mix-incrementValue,3)
+        elif currentLFO == 4:
+            if incrementValue <= 0.001:
+                pass
+            else:
+                incrementValue = round(incrementValue/10,3)
+        else:
+            pass
+        pygame.time.delay(300) #prevents skipping selections
+
+    if JoystickButton:
+        if currentLFO == 2:
+            lfo.enabled = not lfo.enabled
+        elif currentLFO == 5:
+            updateLFO()
+        elif currentLFO == 6:
+            updateLFO()
+            state = 1
+        else:
+            pass
+        pygame.time.delay(300) #prevents skipping selections
+
+    if JoystickVer == 1000:
+        if currentLFO == len(LFOValueList)-1:
+            currentLFO = 0
+        else:
+            currentLFO += 1
+        pygame.time.delay(300) #prevents skipping selections
+    elif JoystickVer == 0:
+        if currentLFO == 0:
+            currentLFO = len(LFOValueList)-1
+        else:
+            currentLFO -= 1
+        pygame.time.delay(300) #prevents skipping selections
+ 
+    # gameDisplay.blit(LFOValueText,(220,10))
+
+    return state, lfo, currentLFO, incrementValue, WaveFormIndex
+
+def editADSRMode(ADSRSelectList,incrementValue,updateADSR,adsr,JoystickVer,JoystickHor,JoystickButton,LeftButton,RightButton,gameDisplay,state,currentADSR):
+    ADSRValueList = ['{}'.format(adsr.Adur),'{}'.format(adsr.ADval),'{}'.format(adsr.Ddur),'{}'.format(adsr.Sval),'{}'.format(adsr.Rdur),'{}'.format(adsr.enabled),'{}'.format(incrementValue),'Update','Back']
     i = 0
     for string in ADSRSelectList:
         ADSRSelectString = smallerFont.render(string, True, blue)
         gameDisplay.blit(ADSRSelectString,(315,10+i))
-        i+=40
-    ADSRValueList = ['{}'.format(adsr.Adur),'{}'.format(adsr.ADval),'{}'.format(adsr.Ddur),'{}'.format(adsr.Sval),'{}'.format(adsr.Rdur),'{}'.format(adsr.enabled),'{}'.format(incrementValue),'Update','Back']
+        i+=40  
     i = 0
     for value in ADSRValueList:
         ADSRSelectString = smallerFont.render(value, True, red)
@@ -138,7 +310,9 @@ def editADSRMode(incrementValue,updateADSR,adsr,JoystickVer,JoystickHor,Joystick
         pygame.time.delay(300) #prevents skipping selections
 
     if JoystickButton:
-        if currentADSR == 7:
+        if currentADSR == 5:
+            adsr.enabled = not adsr.enabled
+        elif currentADSR == 7:
             updateADSR()
         elif currentADSR == 8:
             updateADSR()
@@ -290,7 +464,7 @@ def run():
 
     octavenum = 72
     synthUIs = [SynthUI()]
-    fullSynthList = True
+    fullSynthList = False
     if fullSynthList == True:
 
         while len(synthUIs) < 10:
@@ -312,6 +486,14 @@ def run():
     currentSources = 0
     incrementValue = 0.1
     j=0
+    ADSRSelectList = ["Attack Duration","Attack Value","Decay Duration","Sustain Value","Release Duration","Enabled","Increment Value"]
+    LFOSelectList = ["Waveform","Frequency","Enabled","Mix","Increment Value"]
+    FilterSelectList = ["Mode","Cutoff","Width","Mix","Enabled","# Repeats","Increment Value"]
+    FilterModeList = ['low','high','band']
+    CurrentFilterMode = 0
+    WaveFormList = ["Sine","Saw","Square","Triangle"]
+    WaveFormIndex = 0
+    Waves = [se.Wave.SINE,se.Wave.SAW,se.Wave.SQUARE,se.Wave.TRIANGLE]
     while not quit:
 
         #Reading piano input
@@ -401,6 +583,14 @@ def run():
             plotPosy = 7
             gameDisplay.blit(SelectGraphBox,(plotPosx - 5 + (currentGraph[0]*190),plotPosy - 5 + (currentGraph[1]*190)))
 
+        #Displaying LFO selection box if applicable
+        if state == 4:
+            gameDisplay.blit(SelectADSRBox,(215,5+(40*currentLFO)))
+
+        #Displaying Filter selection box if applicable
+        if state == 5:
+            gameDisplay.blit(SelectADSRBox,(215,5+(40*currentFilter)))
+
         #Displaying ADSR selection box if applicable
         if state == 6:
             gameDisplay.blit(SelectADSRBox,(215,5+(40*currentADSR)))
@@ -413,13 +603,13 @@ def run():
         elif state == 2:
             state, currentGraph = selectGraphMode(JoystickButton,JoystickVer,JoystickHor,currentGraph,state)
         elif state == 3:
-            state, synthUIs[currentSynth-1].synth.sources, currentSources = editSourceMode(state,synthUIs[currentSynth-1].synth.sources,currentSources,JoystickVer,JoystickHor,JoystickButton,LeftButton,RightButton,gameDisplay)
+            state, synthUIs[currentSynth-1].synth.sources, currentSources = editSourceMode(synthUIs[currentSynth-1].updateSources,state,synthUIs[currentSynth-1].synth.sources,currentSources,JoystickVer,JoystickHor,JoystickButton,LeftButton,RightButton,gameDisplay)
         elif state == 4:
-            state, synthUIs[currentSynth-1].synth.ffilter, currentFilter = editFilterMode(state,synthUIs[currentSynth-1].synth.ffilter,currentFilter,JoystickVer,JoystickHor,JoystickButton,LeftButton,RightButton,gameDisplay)
+            state, synthUIs[currentSynth-1].synth.lfo, currentLFO, incrementValue, WaveFormIndex = editLFOMode(Waves,synthUIs[currentSynth-1].updateLFO,incrementValue,WaveFormIndex,LFOSelectList,WaveFormList,state,synthUIs[currentSynth-1].synth.lfo,currentLFO,JoystickVer,JoystickHor,JoystickButton,LeftButton,RightButton,gameDisplay)
         elif state == 5:
-            state, synthUIs[currentSynth-1].synth.lfo, currentLFO = editLFOMode(state,synthUIs[currentSynth-1].synth.lfo,currentLFO,JoystickVer,JoystickHor,JoystickButton,LeftButton,RightButton,gameDisplay)
+            state, synthUIs[currentSynth-1].synth.ffilter, currentFilter, incrementValue, CurrentFilterMode = editFilterMode(incrementValue,FilterModeList,CurrentFilterMode,FilterSelectList,synthUIs[currentSynth-1].updateFilter,state,synthUIs[currentSynth-1].synth.ffilter,currentFilter,JoystickVer,JoystickHor,JoystickButton,LeftButton,RightButton,gameDisplay)
         elif state == 6:
-            state, synthUIs[currentSynth-1].synth.adsr, currentADSR, incrementValue = editADSRMode(incrementValue,synthUIs[currentSynth-1].updateADSR,synthUIs[currentSynth-1].synth.adsr,JoystickVer,JoystickHor,JoystickButton,LeftButton,RightButton,gameDisplay,state,currentADSR)
+            state, synthUIs[currentSynth-1].synth.adsr, currentADSR, incrementValue = editADSRMode(ADSRSelectList,incrementValue,synthUIs[currentSynth-1].updateADSR,synthUIs[currentSynth-1].synth.adsr,JoystickVer,JoystickHor,JoystickButton,LeftButton,RightButton,gameDisplay,state,currentADSR)
 
         pygame.display.update()
         clock.tick(30)
