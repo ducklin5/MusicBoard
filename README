@@ -49,7 +49,9 @@ serialReader.py and serialWritter.cpp are helper files to get input from the Ard
 
 -- Program Usgae --
  >> Arduino
-For first time usage, you must configure your Arduino in the configuration shown in the image file: schematics.jpg. Then run ``make && make upload`` with the arduino plugged in. 
+For first time usage, you must configure your Arduino in the configuration shown in the image file: schematics.jpg. Ensure you have all 14 push buttons and resistors, a joystick and a 3 pin potentiometer
+
+ Then run ``make && make upload`` with the arduino plugged in. 
 
 Once its completed, the prgram can now be run. The frontend program for our project is the interface.py program.
 
