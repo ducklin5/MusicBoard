@@ -6,6 +6,8 @@ CMPUT 274 EA1, Fall  2018
 
 Project: ZMat 2000
 
+![Schematics](./schematics.jpg)
+
 Included Files:
     * interface.py
     * synthEngine.py
