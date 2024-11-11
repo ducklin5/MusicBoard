@@ -74,7 +74,15 @@ These can be installed using ``sudo pip install pygame pySerial numpy scipy matp
 
 usage: run ``python3 interface.py`` in the terminal.
 
-A GUI will appear showing all the Synths than can be edited. The joy stick on the arduino is used for navigation to move bewteen modes and synths. Use the Joystick select/switch to select the options you which to change. The push buttpns to the right of the board are the keyboard buttons and the 2 push buttons on the left are the "more/less or octave up/down" buttons. The potentiometer controls the synth volume
+A GUI will appear showing all the Synths than can be edited. 
+
+The joy stick on the arduino is used for navigation to move bewteen modes and synths. 
+
+Use the Joystick select/switch to select the options you which to change. 
+
+The push buttpns to the right of the board are the keyboard buttons and the 2 push buttons on the left are the "more/less or octave up/down" buttons. 
+
+The potentiometer controls the synth volume
 
 -- Notes --
 --------------
